@@ -71,9 +71,9 @@ WEB_APP_URL=https://YOUR_RENDER_DOMAIN/app/
 DATA_DIR=/var/data
 ```
 
-5. Add a persistent disk mounted at `/var/data`, so bookings are not lost after deploys.
+5. For free deploys, use `DATA_DIR=/tmp/asatryanphoto-data`. Data can be lost when the service restarts. For production, add a persistent disk mounted at `/var/data`.
 
-For a bot that must always answer, use a paid/non-sleeping server plan. Free web services can sleep, and a sleeping bot will not process `/start` until the server wakes up.
+For a bot that must always answer immediately, use a paid/non-sleeping server plan. Free web services can sleep, and a sleeping bot will not process `/start` until the server wakes up.
 
 ## Files
 
