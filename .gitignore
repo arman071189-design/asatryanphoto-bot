@@ -4,3 +4,4 @@ __pycache__/
 server-runtime.log
 tmp*/
 data/*.json
+.ssh_deploy*
