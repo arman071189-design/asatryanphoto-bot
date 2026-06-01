@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="hy">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AsatryanPhoto</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand">
+      <img src="./logo.png?v=2" alt="AsatryanPhoto" class="logo">
+      <div>
+        <p class="eyebrow">Photo & Reel Creation</p>
+        <h1>AsatryanPhoto</h1>
+      </div>
+      <div class="language-menu">
+        <button id="languageMenuButton" class="icon-button" type="button" aria-label="Change language">
+          <span aria-hidden="true">🌐</span>
+        </button>
+        <div id="languageMenu" class="language-dropdown hidden">
+          <button type="button" data-lang="hy">Հայ</button>
+          <button type="button" data-lang="ru">Рус</button>
+          <button type="button" data-lang="en">Eng</button>
+        </div>
+      </div>
+    </header>
+
+    <section id="bookingStatusPanel" class="panel status-panel hidden">
+      <div class="section-head">
+        <h2 data-i18n="statusTitle">Իմ վերջին հարցումը</h2>
+        <button id="refreshStatus" class="ghost" type="button" data-i18n="refresh">Թարմացնել</button>
+      </div>
+      <p id="bookingStatusText" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2 data-i18n="chooseDateTitle">Ընտրեք օրը</h2>
+        <span id="slotCount">...</span>
+      </div>
+      <label class="calendar-field">
+        <span data-i18n="availableDate">Ազատ օր</span>
+        <input id="bookingDate" type="date">
+      </label>
+      <h3 class="subhead" data-i18n="availableTimesTitle">Այս օրվա ազատ ժամերը</h3>
+      <div id="slots" class="slots" aria-live="polite"></div>
+      <label class="check-row">
+        <input id="usePreferredTime" type="checkbox">
+        <span data-i18n="preferredMissing">Իմ նախընտրելի ժամը չկա</span>
+      </label>
+      <label id="preferredTimeWrap" class="hidden calendar-field">
+        <span data-i18n="preferredTime">Ցանկալի ժամ</span>
+        <input id="preferredTime" name="preferredTime" type="time">
+      </label>
+    </section>
+
+    <form id="bookingForm" class="panel form-panel">
+      <h2 data-i18n="bookingDetails">Ամրագրման տվյալներ</h2>
+
+      <div class="grid">
+        <label>
+          <span data-i18n="firstName">Անուն</span>
+          <input name="firstName" autocomplete="given-name" required>
+        </label>
+        <label>
+          <span data-i18n="lastName">Ազգանուն</span>
+          <input name="lastName" autocomplete="family-name" required>
+        </label>
+      </div>
+
+      <label>
+        <span data-i18n="phone">Հեռախոսահամար</span>
+        <input name="phone" type="tel" autocomplete="tel" required>
+      </label>
+
+      <fieldset>
+        <legend data-i18n="serviceType">Ծառայության տեսակ</legend>
+        <div class="segmented service-choice">
+          <label>
+            <input type="radio" name="serviceType" value="Photo" checked>
+            <span>Photo</span>
+          </label>
+          <label>
+            <input type="radio" name="serviceType" value="Reel">
+            <span>Reel</span>
+          </label>
+          <label>
+            <input type="radio" name="serviceType" value="Photo + Reel">
+            <span>Photo + Reel</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="price-preview">
+        <span data-i18n="price">Գին</span>
+        <strong id="servicePrice">Նշված չէ</strong>
+      </div>
+      <p id="serviceDescription" class="service-description"></p>
+
+      <label>
+        <span data-i18n="photoType">Ֆոտոսեսիայի տեսակ</span>
+        <select name="photoType" required></select>
+      </label>
+
+      <fieldset>
+        <legend data-i18n="locationType">Վայրի տեսակ</legend>
+        <div class="segmented">
+          <label>
+            <input type="radio" name="locationType" value="studio" checked>
+            <span data-i18n="studio">Ստուդիա</span>
+          </label>
+          <label>
+            <input type="radio" name="locationType" value="other">
+            <span data-i18n="otherPlace">Այլ վայր</span>
+          </label>
+          <label>
+            <input type="radio" name="locationType" value="undecided">
+            <span data-i18n="undecided">Դեռ չեմ որոշել</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div id="studioFields" class="grid">
+        <label>
+          <span data-i18n="studioName">Ստուդիայի անուն</span>
+          <input name="studioName">
+        </label>
+        <label>
+          <span data-i18n="studioAddress">Ստուդիայի հասցե</span>
+          <input name="studioAddress">
+        </label>
+      </div>
+
+      <label id="otherAddressWrap" class="hidden">
+        <span data-i18n="shootAddress">Ֆոտոսեսիայի հասցե</span>
+        <input name="otherAddress">
+      </label>
+
+      <fieldset id="otherAreaWrap" class="hidden">
+        <legend data-i18n="otherArea">Այլ վայրի տարածք</legend>
+        <div class="segmented">
+          <label>
+            <input type="radio" name="otherArea" value="yerevan" checked>
+            <span data-i18n="yerevan">Երևան</span>
+          </label>
+          <label>
+            <input type="radio" name="otherArea" value="outside">
+            <span data-i18n="outsideYerevan">Երևանից դուրս</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="grid">
+        <label>
+          <span data-i18n="peopleCount">Անձերի քանակ</span>
+          <input type="number" name="peopleCount" min="1" max="50" value="1" required>
+        </label>
+        <label>
+          <span data-i18n="selectedTime">Ընտրված ժամ</span>
+          <input id="selectedSlotText" readonly required>
+        </label>
+      </div>
+
+      <label>
+        <span data-i18n="notes">Լրացուցիչ նշումներ</span>
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+
+      <label>
+        <span data-i18n="references">Ցանկալի նկարների / ռիլի օրինակներ</span>
+        <input id="referenceFiles" class="file-input" type="file" name="references" accept="image/*" multiple>
+        <span class="file-picker" aria-hidden="true">
+          <span class="file-picker-icon">+</span>
+          <span>
+            <strong data-i18n="attachExamples">Կցել օրինակներ</strong>
+            <small id="referenceFileText">Ֆայլ ընտրված չէ</small>
+          </span>
+        </span>
+      </label>
+
+      <button id="submitButton" class="submit" type="submit" data-i18n="sendRequest">Ուղարկել հարցումը</button>
+      <p id="status" class="status" role="status"></p>
+    </form>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

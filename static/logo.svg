@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" role="img" aria-label="AsatryanPhoto logo">
+  <defs>
+    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f3d38b"/>
+      <stop offset="0.45" stop-color="#b8863d"/>
+      <stop offset="1" stop-color="#7b5526"/>
+    </linearGradient>
+    <linearGradient id="black" x1="0" x2="1">
+      <stop offset="0" stop-color="#111"/>
+      <stop offset="1" stop-color="#2d2a23"/>
+    </linearGradient>
+  </defs>
+  <rect width="520" height="360" fill="#fbfaf7"/>
+  <g transform="translate(70 38)">
+    <path d="M34 84h62l18-42h108l18 42h46c28 0 50 22 50 50v84c0 28-22 50-50 50H34c-19 0-34-15-34-34V118c0-19 15-34 34-34Z" fill="url(#black)" stroke="url(#gold)" stroke-width="4"/>
+    <rect x="28" y="66" width="56" height="20" rx="7" fill="url(#gold)"/>
+    <path d="M282 104c58-4 115 6 155 35 18 13 28 29 27 46-2 27-35 45-75 48-34 3-71-3-104-17" fill="none" stroke="url(#gold)" stroke-width="20"/>
+    <path d="M291 135c43-2 84 5 111 24 10 7 16 15 16 24-1 13-18 23-42 25-25 2-54-3-81-13" fill="none" stroke="#15130f" stroke-width="14"/>
+    <circle cx="194" cy="175" r="82" fill="url(#black)" stroke="#fff" stroke-width="10"/>
+    <circle cx="194" cy="175" r="66" fill="none" stroke="url(#gold)" stroke-width="7"/>
+    <path d="M170 114c-39 17-55 68-32 104l48-49Z" fill="url(#gold)"/>
+    <path d="M217 126c-39-10-81 14-91 54l64-11Z" fill="url(#gold)"/>
+    <path d="M241 181c-15 37-58 58-97 45l48-44Z" fill="url(#gold)"/>
+    <path d="M185 148v58c0 9 10 14 17 9l42-29c7-5 7-15 0-20l-42-29c-7-5-17 0-17 11Z" fill="url(#gold)"/>
+  </g>
+  <text x="260" y="310" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#15130f">Asatryan<tspan fill="#b8863d">Photo</tspan></text>
+  <text x="260" y="342" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" letter-spacing="10" fill="#15130f">PHOTO &amp; REEL CREATION</text>
+</svg>

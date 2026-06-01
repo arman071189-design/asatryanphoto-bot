@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="hy">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AsatryanPhoto Admin</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand">
+      <img src="./logo.png?v=2" alt="AsatryanPhoto" class="logo">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>AsatryanPhoto</h1>
+      </div>
+    </header>
+
+    <section class="panel form-panel">
+      <div class="section-head">
+        <h2>Գներ</h2>
+        <span>AMD</span>
+      </div>
+      <form id="priceForm" class="price-form">
+        <label>
+          <span>Studio Photo</span>
+          <input type="number" name="studio.Photo" min="0" step="1000" required>
+        </label>
+        <label>
+          <span>Studio Reel</span>
+          <input type="number" name="studio.Reel" min="0" step="1000" required>
+        </label>
+        <label>
+          <span>Studio Photo + Reel</span>
+          <input type="number" name="studio.Photo + Reel" min="0" step="1000" required>
+        </label>
+        <label>
+          <span>Երևան Photo</span>
+          <input type="number" name="yerevan.Photo" min="0" step="1000" required>
+        </label>
+        <label>
+          <span>Երևան Reel</span>
+          <input type="number" name="yerevan.Reel" min="0" step="1000" required>
+        </label>
+        <label>
+          <span>Երևան Photo + Reel</span>
+          <input type="number" name="yerevan.Photo + Reel" min="0" step="1000" required>
+        </label>
+        <button class="submit" type="submit">Պահպանել գները</button>
+      </form>
+      <p id="priceStatus" class="status" role="status"></p>
+    </section>
+
+    <section class="panel form-panel">
+      <div class="section-head">
+        <h2>Ոչ աշխատանքային օրեր</h2>
+        <span id="adminSlotCount">...</span>
+      </div>
+      <form id="durationForm" class="inline-form">
+        <label>
+          <span>Ստուդիա դիապազոն</span>
+          <select name="studioBlockMinutes">
+            <option value="60">1 ժամ</option>
+            <option value="90">1.5 ժամ</option>
+            <option value="120">2 ժամ</option>
+            <option value="180">3 ժամ</option>
+          </select>
+        </label>
+        <label>
+          <span>Այլ վայր դիապազոն</span>
+          <select name="otherBlockMinutes">
+            <option value="60">1 ժամ</option>
+            <option value="90">1.5 ժամ</option>
+            <option value="120">2 ժամ</option>
+            <option value="180">3 ժամ</option>
+          </select>
+        </label>
+        <button class="submit" type="submit">Պահպանել դիապազոնը</button>
+      </form>
+
+      <form id="nonWorkingForm" class="inline-form">
+        <label>
+          <span>Սկսած օր</span>
+          <input type="date" name="dateFrom" required>
+        </label>
+        <label>
+          <span>Մինչև օր</span>
+          <input type="date" name="dateTo" required>
+        </label>
+        <label>
+          <span>Նշում</span>
+          <input name="reason" placeholder="Օրինակ՝ հանգստյան օր">
+        </label>
+        <button class="submit" type="submit">Ավելացնել</button>
+      </form>
+      <p class="status">Բոլոր օրերը աշխատանքային են, բացի այստեղ նշված օրերից։</p>
+      <div id="nonWorkingDays" class="admin-list"></div>
+    </section>
+
+    <section class="panel form-panel">
+      <div class="section-head">
+        <h2>Ամրագրման հարցումներ</h2>
+        <button id="refreshBookings" class="ghost" type="button">Թարմացնել</button>
+      </div>
+      <div id="bookings" class="admin-list"></div>
+    </section>
+  </main>
+
+  <script src="./admin.js"></script>
+</body>
+</html>

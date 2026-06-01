@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: asatryanphoto-bot
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /health
+    envVars:
+      - key: ENABLE_POLLING
+        value: "1"
+      - key: ALLOW_LOCAL_TESTING
+        value: "0"
+      - key: WEB_APP_URL
+        value: https://asatryanphoto-bot.onrender.com/app/
+      - key: DATA_DIR
+        value: /var/data
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false
+    disk:
+      name: asatryanphoto-data
+      mountPath: /var/data
+      sizeGB: 1
+
