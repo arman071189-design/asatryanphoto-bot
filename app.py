@@ -296,6 +296,28 @@ def telegram_multipart(method: str, fields: dict, files: dict) -> dict:
         return {"ok": False, "description": str(exc)}
 
 
+def telegram_media_group(fields: dict, media_files: list[dict]) -> dict:
+    files = {}
+    media = []
+    for index, file_data in enumerate(media_files[:10]):
+        attach_name = f"photo{index}"
+        files[attach_name] = file_data
+        item = {"type": "photo", "media": f"attach://{attach_name}"}
+        caption = file_data.get("caption", "")
+        if caption:
+            item["caption"] = caption
+        media.append(item)
+
+    return telegram_multipart(
+        "sendMediaGroup",
+        {
+            **fields,
+            "media": json.dumps(media, ensure_ascii=False),
+        },
+        files,
+    )
+
+
 def process_callback_query(callback: dict) -> tuple[bool, str]:
     data = callback.get("data", "")
     action, _, booking_id = data.partition(":")
@@ -322,6 +344,19 @@ def process_callback_query(callback: dict) -> tuple[bool, str]:
     return bool(booking), answer_text
 
 
+def web_button(text: str, url: str) -> dict:
+    button = {"text": text}
+    if url.startswith("https://"):
+        button["web_app"] = {"url": url}
+    else:
+        button["url"] = url
+    return button
+
+
+def admin_app_url() -> str:
+    return WEB_APP_URL.rstrip("/") + "/admin.html"
+
+
 def process_message(message: dict) -> None:
     chat = message.get("chat") or {}
     chat_id = chat.get("id")
@@ -329,25 +364,27 @@ def process_message(message: dict) -> None:
     if not chat_id:
         return
 
-    app_button = {"text": "Բացել Mini App"}
-    if WEB_APP_URL.startswith("https://"):
-        app_button["web_app"] = {"url": WEB_APP_URL}
-    else:
-        app_button["url"] = WEB_APP_URL
+    keyboard = [[web_button("Բացել Mini App", WEB_APP_URL)]]
+    if ADMIN_CHAT_ID and str(chat_id) == str(ADMIN_CHAT_ID):
+        keyboard.append([web_button("Բացել Admin էջ", admin_app_url())])
 
-    if text.startswith("/start") or text.startswith("/app"):
+    if text.startswith("/start") or text.startswith("/app") or text.startswith("/admin"):
+        intro = (
+            "Բարի գալուստ AsatryanPhoto 📸\n\n"
+            "Սեղմեք կոճակը՝ ազատ ժամերը տեսնելու և ամրագրման հարցում ուղարկելու համար։"
+        )
+        if ADMIN_CHAT_ID and str(chat_id) == str(ADMIN_CHAT_ID):
+            intro = (
+                "Բարի գալուստ AsatryanPhoto admin բաժին 📸\n\n"
+                "Կարող եք բացել հաճախորդի Mini App-ը կամ անմիջապես մտնել admin էջ։"
+            )
         telegram_api(
             "sendMessage",
             {
                 "chat_id": chat_id,
-                "text": (
-                    "Բարի գալուստ AsatryanPhoto 📸\n\n"
-                    "Սեղմեք կոճակը՝ ազատ ժամերը տեսնելու և ամրագրման հարցում ուղարկելու համար։"
-                ),
+                "text": intro,
                 "reply_markup": {
-                    "inline_keyboard": [
-                        [app_button]
-                    ]
+                    "inline_keyboard": keyboard
                 },
             },
         )
@@ -502,6 +539,29 @@ def notify_admin(booking: dict, reference_files: list[dict] | None = None) -> di
 
 
 def send_reference_files(booking: dict, reference_files: list[dict]) -> list[dict]:
+    caption = (
+        "Հաճախորդի ուղարկած ցանկալի նկարների / ռիլի օրինակներ\n"
+        f"{booking['firstName']} {booking['lastName']}\n"
+        f"{booking['date']} {booking['time']}"
+    )
+    image_files = [
+        {**file_data, "caption": caption if index == 0 else ""}
+        for index, file_data in enumerate(reference_files[:10])
+        if str(file_data.get("contentType", "")).startswith("image/")
+    ]
+    if len(image_files) > 1:
+        group_result = telegram_media_group({"chat_id": ADMIN_CHAT_ID}, image_files)
+        if group_result.get("ok"):
+            return [
+                {
+                    "filename": file_data.get("filename", ""),
+                    "ok": True,
+                    "grouped": True,
+                    "description": "",
+                }
+                for file_data in image_files
+            ]
+
     results = []
     for index, file_data in enumerate(reference_files[:10], start=1):
         caption = ""
