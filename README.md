@@ -65,6 +65,7 @@ Health Check Path: /health
 ```text
 BOT_TOKEN=your_real_bot_token
 ADMIN_CHAT_ID=your_admin_chat_id
+ADMIN_CHAT_IDS=your_admin_chat_id,second_admin_chat_id
 ENABLE_POLLING=1
 ALLOW_LOCAL_TESTING=0
 WEB_APP_URL=https://YOUR_RENDER_DOMAIN/app/
@@ -87,6 +88,7 @@ For a bot that must always answer immediately, use a paid/non-sleeping server pl
 
 - `BOT_TOKEN` - Telegram bot token.
 - `ADMIN_CHAT_ID` - photographer/admin Telegram chat id.
+- `ADMIN_CHAT_IDS` - comma-separated admin Telegram chat ids for multiple admins.
 - `ENABLE_POLLING` - set `1` to keep the bot active with long polling.
 - `WEB_APP_URL` - public Mini App URL used in the `/start` button.
 - `ALLOW_LOCAL_TESTING` - set `1` only for local browser testing without Telegram init data.

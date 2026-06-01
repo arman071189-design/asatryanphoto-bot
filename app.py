@@ -38,6 +38,11 @@ load_local_env()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "")
+ADMIN_CHAT_IDS = [
+    chat_id.strip()
+    for chat_id in os.environ.get("ADMIN_CHAT_IDS", ADMIN_CHAT_ID).split(",")
+    if chat_id.strip()
+]
 ENABLE_POLLING = os.environ.get("ENABLE_POLLING", "1") == "1"
 ALLOW_LOCAL_TESTING = os.environ.get("ALLOW_LOCAL_TESTING", "1") == "1"
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://127.0.0.1:8000/app/")
@@ -357,6 +362,10 @@ def admin_app_url() -> str:
     return WEB_APP_URL.rstrip("/") + "/admin.html"
 
 
+def is_admin_chat(chat_id: object) -> bool:
+    return str(chat_id) in ADMIN_CHAT_IDS
+
+
 def process_message(message: dict) -> None:
     chat = message.get("chat") or {}
     chat_id = chat.get("id")
@@ -365,7 +374,7 @@ def process_message(message: dict) -> None:
         return
 
     keyboard = [[web_button("Բացել Mini App", WEB_APP_URL)]]
-    if ADMIN_CHAT_ID and str(chat_id) == str(ADMIN_CHAT_ID):
+    if is_admin_chat(chat_id):
         keyboard.append([web_button("Բացել Admin էջ", admin_app_url())])
 
     if text.startswith("/start") or text.startswith("/app") or text.startswith("/admin"):
@@ -373,7 +382,7 @@ def process_message(message: dict) -> None:
             "Բարի գալուստ AsatryanPhoto 📸\n\n"
             "Սեղմեք կոճակը՝ ազատ ժամերը տեսնելու և ամրագրման հարցում ուղարկելու համար։"
         )
-        if ADMIN_CHAT_ID and str(chat_id) == str(ADMIN_CHAT_ID):
+        if is_admin_chat(chat_id):
             intro = (
                 "Բարի գալուստ AsatryanPhoto admin բաժին 📸\n\n"
                 "Կարող եք բացել հաճախորդի Mini App-ը կամ անմիջապես մտնել admin էջ։"
@@ -512,33 +521,37 @@ def format_booking_message(booking: dict) -> str:
 
 
 def notify_admin(booking: dict, reference_files: list[dict] | None = None) -> dict:
-    if not ADMIN_CHAT_ID:
-        return {"ok": False, "description": "ADMIN_CHAT_ID is not configured"}
+    if not ADMIN_CHAT_IDS:
+        return {"ok": False, "description": "ADMIN_CHAT_IDS is not configured"}
 
-    result = telegram_api(
-        "sendMessage",
-        {
-            "chat_id": ADMIN_CHAT_ID,
-            "text": format_booking_message(booking),
-            "reply_markup": {
-                "inline_keyboard": [
-                    [
-                        {"text": "Հաստատել", "callback_data": f"approve:{booking['id']}"},
-                        {"text": "Մերժել", "callback_data": f"reject:{booking['id']}"},
+    results = []
+    for admin_chat_id in ADMIN_CHAT_IDS:
+        result = telegram_api(
+            "sendMessage",
+            {
+                "chat_id": admin_chat_id,
+                "text": format_booking_message(booking),
+                "reply_markup": {
+                    "inline_keyboard": [
+                        [
+                            {"text": "Հաստատել", "callback_data": f"approve:{booking['id']}"},
+                            {"text": "Մերժել", "callback_data": f"reject:{booking['id']}"},
+                        ]
                     ]
-                ]
+                },
             },
-        },
-    )
-    reference_results = []
-    if reference_files:
-        reference_results = send_reference_files(booking, reference_files)
-    if reference_results:
-        result["referenceFiles"] = reference_results
-    return result
+        )
+        reference_results = []
+        if reference_files:
+            reference_results = send_reference_files(admin_chat_id, booking, reference_files)
+        if reference_results:
+            result["referenceFiles"] = reference_results
+        results.append({"chatId": admin_chat_id, **result})
+
+    return {"ok": any(item.get("ok") for item in results), "results": results}
 
 
-def send_reference_files(booking: dict, reference_files: list[dict]) -> list[dict]:
+def send_reference_files(admin_chat_id: str, booking: dict, reference_files: list[dict]) -> list[dict]:
     caption = (
         "Հաճախորդի ուղարկած ցանկալի նկարների / ռիլի օրինակներ\n"
         f"{booking['firstName']} {booking['lastName']}\n"
@@ -550,7 +563,7 @@ def send_reference_files(booking: dict, reference_files: list[dict]) -> list[dic
         if str(file_data.get("contentType", "")).startswith("image/")
     ]
     if len(image_files) > 1:
-        group_result = telegram_media_group({"chat_id": ADMIN_CHAT_ID}, image_files)
+        group_result = telegram_media_group({"chat_id": admin_chat_id}, image_files)
         if group_result.get("ok"):
             return [
                 {
@@ -574,7 +587,7 @@ def send_reference_files(booking: dict, reference_files: list[dict]) -> list[dic
         result = telegram_multipart(
             "sendPhoto",
             {
-                "chat_id": ADMIN_CHAT_ID,
+                "chat_id": admin_chat_id,
                 "caption": caption,
             },
             {"photo": file_data},
@@ -583,7 +596,7 @@ def send_reference_files(booking: dict, reference_files: list[dict]) -> list[dic
             result = telegram_multipart(
                 "sendDocument",
                 {
-                    "chat_id": ADMIN_CHAT_ID,
+                    "chat_id": admin_chat_id,
                     "caption": caption,
                 },
                 {"document": file_data},
