@@ -17,9 +17,17 @@
   box-sizing: border-box;
 }
 
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
   background:
     linear-gradient(135deg, rgba(185, 139, 69, 0.12), transparent 42%),
@@ -32,6 +40,7 @@ input,
 select,
 textarea {
   font: inherit;
+  max-width: 100%;
 }
 
 .app-shell {
@@ -147,6 +156,10 @@ h2 {
   margin-bottom: 12px;
 }
 
+.section-head h2 {
+  min-width: 0;
+}
+
 .section-head span {
   color: var(--muted);
   white-space: nowrap;
@@ -160,18 +173,16 @@ h2 {
 }
 
 .slots {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
   gap: 10px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  padding: 2px 2px 10px;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
+  padding: 2px 0 4px;
 }
 
 .slot {
-  flex: 0 0 auto;
-  min-width: 92px;
+  width: 100%;
+  min-width: 0;
   min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -179,7 +190,6 @@ h2 {
   color: var(--ink);
   text-align: center;
   padding: 10px 14px;
-  scroll-snap-align: start;
 }
 
 .slot[data-active="true"] {
@@ -220,8 +230,10 @@ h2 {
 }
 
 .check-row span {
+  min-width: 0;
   color: var(--ink);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .disabled-options {
@@ -248,6 +260,7 @@ label span,
 legend {
   color: var(--muted);
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 input,
@@ -286,6 +299,10 @@ input[type="file"] {
   padding: 10px 12px;
 }
 
+.file-picker > span:last-child {
+  min-width: 0;
+}
+
 .file-picker-icon {
   display: grid;
   place-items: center;
@@ -308,6 +325,7 @@ input[type="file"] {
   margin-top: 2px;
   color: var(--muted);
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .file-input:focus + .file-picker {
@@ -356,6 +374,7 @@ fieldset {
 .segmented span {
   display: grid;
   place-items: center;
+  min-width: 0;
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -363,6 +382,7 @@ fieldset {
   color: var(--ink);
   font-weight: 700;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .service-choice span {
@@ -417,6 +437,12 @@ fieldset {
   border-radius: 8px;
   background: #fff8ed;
   padding: 12px;
+}
+
+.price-preview span,
+.price-preview strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .price-preview span {
@@ -529,7 +555,7 @@ fieldset {
 
 @media (max-width: 560px) {
   .app-shell {
-    padding: 8px 6px max(8px, env(safe-area-inset-bottom));
+    padding: 6px 4px max(8px, env(safe-area-inset-bottom));
   }
 
   .brand {
@@ -553,7 +579,7 @@ fieldset {
   }
 
   .panel {
-    padding: 12px 8px;
+    padding: 10px 6px;
   }
 
   .panel + .panel {
@@ -567,16 +593,33 @@ fieldset {
   input,
   select,
   textarea {
-    padding: 11px 10px;
+    min-height: 42px;
+    padding: 10px 8px;
   }
 
   .segmented {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
     gap: 6px;
   }
 
   .segmented span {
-    min-height: 42px;
+    min-height: 40px;
     padding-inline: 6px;
+    font-size: 14px;
+  }
+
+  .slots {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 6px;
+  }
+
+  .slot {
+    min-height: 42px;
+    padding: 8px 6px;
+  }
+
+  .slot strong {
+    font-size: 16px;
   }
 
   .grid {
@@ -585,6 +628,26 @@ fieldset {
 
   .service-choice {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .service-choice span {
+    font-size: 13px;
+  }
+
+  .section-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .section-head span {
+    white-space: normal;
+  }
+
+  .price-preview {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 8px;
   }
 
   .price-form {

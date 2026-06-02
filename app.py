@@ -903,6 +903,16 @@ def create_booking(payload: dict, reference_files: list[dict] | None = None) -> 
         return 400, {"error": "Invalid other area"}
 
     service_type = payload["serviceType"].strip()
+    if service_type not in {"Photo", "Reel", "Photo + Reel"}:
+        return 400, {"error": "Invalid service type"}
+
+    try:
+        people_count = int(payload["peopleCount"])
+    except (TypeError, ValueError):
+        return 400, {"error": "Invalid people count"}
+    if people_count < 1 or people_count > 50:
+        return 400, {"error": "People count must be between 1 and 50"}
+
     block_minutes = (
         int(db.get("workSettings", {}).get("studioBlockMinutes", 60))
         if location_type == "studio"
@@ -930,7 +940,7 @@ def create_booking(payload: dict, reference_files: list[dict] | None = None) -> 
         "studioName": payload.get("studioName", "").strip(),
         "studioAddress": payload.get("studioAddress", "").strip(),
         "otherAddress": payload.get("otherAddress", "").strip(),
-        "peopleCount": int(payload["peopleCount"]),
+        "peopleCount": people_count,
         "notes": payload.get("notes", "").strip(),
         "telegramUserId": tg_user.get("id") or payload.get("telegramUserId"),
         "telegramUsername": tg_user.get("username") or payload.get("telegramUsername", ""),
