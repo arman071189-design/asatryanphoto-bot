@@ -528,10 +528,15 @@ fieldset {
 }
 
 @media (max-width: 560px) {
+  .app-shell {
+    padding: 8px 6px max(8px, env(safe-area-inset-bottom));
+  }
+
   .brand {
     grid-template-columns: 68px minmax(0, 1fr) 42px;
     gap: 10px;
     min-height: 88px;
+    padding: 0 2px;
   }
 
   .logo {
@@ -548,7 +553,30 @@ fieldset {
   }
 
   .panel {
-    padding: 14px 12px;
+    padding: 12px 8px;
+  }
+
+  .panel + .panel {
+    margin-top: 10px;
+  }
+
+  .form-panel {
+    gap: 12px;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 11px 10px;
+  }
+
+  .segmented {
+    gap: 6px;
+  }
+
+  .segmented span {
+    min-height: 42px;
+    padding-inline: 6px;
   }
 
   .grid {
