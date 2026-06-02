@@ -217,6 +217,10 @@ h2 {
   margin-bottom: 4px;
 }
 
+.calendar-field input[type="date"] {
+  font-size: 16px;
+}
+
 .check-row {
   display: flex;
   align-items: center;
@@ -595,6 +599,16 @@ fieldset {
   textarea {
     min-height: 42px;
     padding: 10px 8px;
+  }
+
+  .calendar-field {
+    margin-left: -2px;
+  }
+
+  .calendar-field input[type="date"] {
+    min-height: 38px;
+    padding: 8px 7px;
+    font-size: 15px;
   }
 
   .segmented {
