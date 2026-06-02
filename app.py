@@ -46,6 +46,8 @@ ADMIN_CHAT_IDS = [
 ENABLE_POLLING = os.environ.get("ENABLE_POLLING", "1") == "1"
 ALLOW_LOCAL_TESTING = os.environ.get("ALLOW_LOCAL_TESTING", "1") == "1"
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://127.0.0.1:8000/app/")
+ENABLE_SELF_KEEP_ALIVE = os.environ.get("ENABLE_SELF_KEEP_ALIVE", "0") == "1"
+KEEP_ALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEP_ALIVE_INTERVAL_SECONDS", "600"))
 
 PHOTO_TYPES = [
     "Անհատական ֆոտոսեսիա",
@@ -439,6 +441,33 @@ def polling_loop() -> None:
             message = update.get("message")
             if message:
                 process_message(message)
+
+
+def keep_alive_url() -> str:
+    configured_url = os.environ.get("KEEP_ALIVE_URL", "").strip()
+    if configured_url:
+        return configured_url
+
+    parsed = urllib.parse.urlparse(WEB_APP_URL)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}/health"
+    return ""
+
+
+def self_keep_alive_loop() -> None:
+    url = keep_alive_url()
+    if not url:
+        print("Self keep-alive skipped: no public URL configured")
+        return
+
+    print(f"Self keep-alive started for {url}")
+    while True:
+        time.sleep(max(60, KEEP_ALIVE_INTERVAL_SECONDS))
+        try:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                print(f"Self keep-alive ping: {response.status}")
+        except Exception as exc:
+            print(f"Self keep-alive ping failed: {exc}")
 
 
 def validate_init_data(init_data: str) -> tuple[bool, dict]:
@@ -1302,6 +1331,8 @@ def main() -> None:
     threading.Thread(target=reminder_loop, daemon=True).start()
     if ENABLE_POLLING:
         threading.Thread(target=polling_loop, daemon=True).start()
+    if ENABLE_SELF_KEEP_ALIVE:
+        threading.Thread(target=self_keep_alive_loop, daemon=True).start()
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", "8000"))
     server = ThreadingHTTPServer((host, port), AppHandler)

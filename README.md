@@ -70,6 +70,8 @@ ENABLE_POLLING=1
 ALLOW_LOCAL_TESTING=0
 WEB_APP_URL=https://YOUR_RENDER_DOMAIN/app/
 DATA_DIR=/var/data
+ENABLE_SELF_KEEP_ALIVE=1
+KEEP_ALIVE_INTERVAL_SECONDS=600
 ```
 
 5. For free deploys, use `DATA_DIR=/tmp/asatryanphoto-data`. Data can be lost when the service restarts. For production, add a persistent disk mounted at `/var/data`.
@@ -93,5 +95,7 @@ For a bot that must always answer immediately, use a paid/non-sleeping server pl
 - `WEB_APP_URL` - public Mini App URL used in the `/start` button.
 - `ALLOW_LOCAL_TESTING` - set `1` only for local browser testing without Telegram init data.
 - `DATA_DIR` - optional persistent data directory, default `data`.
+- `ENABLE_SELF_KEEP_ALIVE` - set `1` to let the server ping its own `/health` endpoint while it is awake.
+- `KEEP_ALIVE_INTERVAL_SECONDS` - self keep-alive interval, default `600`.
 - `HOST` - optional, default `0.0.0.0`.
 - `PORT` - optional, default `8000`.
