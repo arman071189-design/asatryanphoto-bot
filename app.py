@@ -48,6 +48,7 @@ ALLOW_LOCAL_TESTING = os.environ.get("ALLOW_LOCAL_TESTING", "1") == "1"
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://127.0.0.1:8000/app/")
 ENABLE_SELF_KEEP_ALIVE = os.environ.get("ENABLE_SELF_KEEP_ALIVE", "0") == "1"
 KEEP_ALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEP_ALIVE_INTERVAL_SECONDS", "600"))
+CONFIGURE_BOT_UI = os.environ.get("CONFIGURE_BOT_UI", "1") == "1"
 
 PHOTO_TYPES = [
     "Անհատական ֆոտոսեսիա",
@@ -349,6 +350,33 @@ def process_callback_query(callback: dict) -> tuple[bool, str]:
         )
 
     return bool(booking), answer_text
+
+
+def configure_bot_ui() -> None:
+    if not BOT_TOKEN:
+        return
+
+    telegram_api(
+        "setMyCommands",
+        {
+            "commands": [
+                {"command": "start", "description": "Բացել ամրագրման Mini App-ը"},
+                {"command": "app", "description": "Բացել ամրագրումը"},
+                {"command": "admin", "description": "Բացել admin էջը"},
+            ]
+        },
+    )
+    if WEB_APP_URL.startswith("https://"):
+        telegram_api(
+            "setChatMenuButton",
+            {
+                "menu_button": {
+                    "type": "web_app",
+                    "text": "Գրանցվել",
+                    "web_app": {"url": WEB_APP_URL},
+                }
+            },
+        )
 
 
 def web_button(text: str, url: str) -> dict:
@@ -1328,6 +1356,8 @@ class AppHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     ensure_db()
+    if CONFIGURE_BOT_UI:
+        configure_bot_ui()
     threading.Thread(target=reminder_loop, daemon=True).start()
     if ENABLE_POLLING:
         threading.Thread(target=polling_loop, daemon=True).start()
