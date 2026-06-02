@@ -20,6 +20,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     linear-gradient(135deg, rgba(185, 139, 69, 0.12), transparent 42%),
     linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
@@ -36,20 +37,20 @@ textarea {
 .app-shell {
   width: min(760px, 100%);
   margin: 0 auto;
-  padding: 18px 14px 28px;
+  padding: 14px 12px max(12px, env(safe-area-inset-bottom));
 }
 
 .brand {
   display: grid;
-  grid-template-columns: 96px 1fr auto;
-  gap: 14px;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
-  min-height: 124px;
+  min-height: 112px;
 }
 
 .logo {
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   object-fit: contain;
 }
 
@@ -68,8 +69,9 @@ h2 {
 
 h1 {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(34px, 9vw, 58px);
+  font-size: clamp(30px, 8vw, 52px);
   font-weight: 400;
+  overflow-wrap: anywhere;
 }
 
 h2 {
@@ -388,9 +390,13 @@ fieldset {
 }
 
 .status {
-  min-height: 22px;
-  margin: 0;
+  min-height: 0;
+  margin: -4px 0 0;
   color: var(--muted);
+}
+
+.status:empty {
+  display: none;
 }
 
 .status[data-type="error"] {
@@ -523,13 +529,26 @@ fieldset {
 
 @media (max-width: 560px) {
   .brand {
-    grid-template-columns: 78px 1fr auto;
-    min-height: 106px;
+    grid-template-columns: 68px minmax(0, 1fr) 42px;
+    gap: 10px;
+    min-height: 88px;
   }
 
   .logo {
-    width: 78px;
-    height: 78px;
+    width: 68px;
+    height: 68px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .panel {
+    padding: 14px 12px;
   }
 
   .grid {
