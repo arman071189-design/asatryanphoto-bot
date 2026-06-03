@@ -33,6 +33,14 @@ const submitButton = document.querySelector("#submitButton");
 let servicePrices = {};
 let currentLang = localStorage.getItem("lang") || "hy";
 
+function lockHorizontalScroll() {
+  document.documentElement.scrollLeft = 0;
+  document.body.scrollLeft = 0;
+  if (window.scrollX) {
+    window.scrollTo(0, window.scrollY);
+  }
+}
+
 const serviceDescriptions = {
   hy: {
     Photo: "Ներառում է լուսանկարահանում, ընտրված նկարների մշակում և պատրաստ ֆայլերի փոխանցում։",
@@ -591,6 +599,10 @@ document.addEventListener("click", (event) => {
   }
 });
 
+window.addEventListener("scroll", lockHorizontalScroll, { passive: true });
+window.addEventListener("resize", lockHorizontalScroll);
+visualViewport?.addEventListener("resize", lockHorizontalScroll);
+
 refreshStatus.addEventListener("click", loadLastBookingStatus);
 
 bookingDateInput.addEventListener("change", () => {
@@ -616,6 +628,7 @@ form.addEventListener("submit", submitBooking);
 
 tg?.ready();
 tg?.expand();
+lockHorizontalScroll();
 updateLocationFields();
 applyLanguage();
 loadLastBookingStatus();
