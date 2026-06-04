@@ -694,7 +694,7 @@ def format_price(value: object) -> str:
         amount = 0
     if amount <= 0:
         return "Նշված չէ"
-    return f"{amount:,} AMD".replace(",", " ")
+    return f"{amount:,} AMD / 1 ժամ".replace(",", " ")
 
 
 def price_group_for_booking(location_type: str, other_area: str = "") -> str | None:

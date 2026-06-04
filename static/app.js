@@ -32,6 +32,11 @@ const languageMenu = document.querySelector("#languageMenu");
 const submitButton = document.querySelector("#submitButton");
 let servicePrices = {};
 let currentLang = localStorage.getItem("lang") || "hy";
+const priceUnitLabels = {
+  hy: "1 \u056A\u0561\u0574",
+  ru: "1 \u0447\u0430\u0441",
+  en: "1 hour",
+};
 
 function lockHorizontalScroll() {
   document.documentElement.scrollLeft = 0;
@@ -345,6 +350,8 @@ function updatePreferredTimeMode() {
   const enabled = usePreferredTime.checked;
   preferredTimeWrap.classList.toggle("hidden", !enabled);
   preferredTimeInput.required = enabled;
+  selectedSlotText.required = !enabled;
+  selectedSlotText.setCustomValidity("");
   slotsEl.classList.toggle("disabled-options", enabled);
   if (enabled) {
     state.selectedSlotId = "";
@@ -372,7 +379,7 @@ function formatPrice(value) {
   const amount = Number(value || 0);
   if (!amount) return t[currentLang].notSet;
   const locales = { hy: "hy-AM", ru: "ru-RU", en: "en-US" };
-  return `${new Intl.NumberFormat(locales[currentLang] || "hy-AM").format(amount)} AMD`;
+  return `${new Intl.NumberFormat(locales[currentLang] || "hy-AM").format(amount)} AMD / ${priceUnitLabels[currentLang] || priceUnitLabels.hy}`;
 }
 
 function updateServicePrice() {
