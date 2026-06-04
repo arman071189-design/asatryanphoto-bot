@@ -147,6 +147,8 @@ const t = {
     noTime: "Խնդրում ենք ընտրել ազատ ժամը կամ նշել ցանկալի ժամը։",
     sent: "Հարցումը ուղարկված է։ Սպասեք ֆոտոգրաֆի հաստատմանը։",
     failed: "Չհաջողվեց ուղարկել հարցումը։ Ստուգեք տվյալները և փորձեք կրկին։",
+    selectedTimeUnavailable: "Ընտրված ժամը այլևս հասանելի չէ։ Թարմացրեք էջը և ընտրեք ազատ ժամ։",
+    telegramValidationFailed: "Խնդրում ենք բացել գրանցումը Telegram բոտից և փորձել կրկին։",
   },
   ru: {
     navBooking: "Запись",
@@ -197,6 +199,8 @@ const t = {
     noTime: "Выберите свободное время или укажите желаемое время.",
     sent: "Заявка отправлена. Ожидайте подтверждения фотографа.",
     failed: "Не удалось отправить заявку. Проверьте данные и попробуйте снова.",
+    selectedTimeUnavailable: "Выбранное время больше недоступно. Обновите страницу и выберите свободное время.",
+    telegramValidationFailed: "Пожалуйста, откройте запись из Telegram-бота и попробуйте снова.",
   },
   en: {
     navBooking: "Booking",
@@ -247,7 +251,14 @@ const t = {
     noTime: "Please select an available time or enter a preferred time.",
     sent: "Request sent. Please wait for photographer confirmation.",
     failed: "Could not send the request. Check the details and try again.",
+    selectedTimeUnavailable: "The selected time is no longer available. Refresh and choose an available time.",
+    telegramValidationFailed: "Please open booking from the Telegram bot and try again.",
   },
+};
+
+const apiErrorMessages = {
+  "Selected time is not available": "selectedTimeUnavailable",
+  "Telegram initData validation failed": "telegramValidationFailed",
 };
 
 function setStatus(message, type = "") {
@@ -500,7 +511,8 @@ async function submitBooking(event) {
     });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.error || "Booking failed");
+      const messageKey = apiErrorMessages[data.error] || "";
+      throw new Error(messageKey ? t[currentLang][messageKey] : data.error || t[currentLang].failed);
     }
 
     localStorage.setItem("lastBookingId", data.booking.id);
@@ -510,7 +522,7 @@ async function submitBooking(event) {
     tg?.MainButton?.hide();
     await loadAvailability();
   } catch (error) {
-    setStatus(t[currentLang].failed, "error");
+    setStatus(error.message || t[currentLang].failed, "error");
     tg?.HapticFeedback?.notificationOccurred("error");
   } finally {
     submitButton.disabled = false;

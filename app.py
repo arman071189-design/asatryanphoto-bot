@@ -11,10 +11,11 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 ROOT = Path(__file__).resolve().parent
@@ -49,6 +50,10 @@ WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://127.0.0.1:8000/app/")
 ENABLE_SELF_KEEP_ALIVE = os.environ.get("ENABLE_SELF_KEEP_ALIVE", "0") == "1"
 KEEP_ALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEP_ALIVE_INTERVAL_SECONDS", "600"))
 CONFIGURE_BOT_UI = os.environ.get("CONFIGURE_BOT_UI", "1") == "1"
+try:
+    APP_TIMEZONE = ZoneInfo(os.environ.get("APP_TIMEZONE", "Asia/Yerevan"))
+except ZoneInfoNotFoundError:
+    APP_TIMEZONE = timezone(timedelta(hours=4))
 
 PHOTO_TYPES = [
     "Անհատական ֆոտոսեսիա",
@@ -808,7 +813,8 @@ def blocked_ids_for_booking(booking: dict, settings: dict) -> set[str]:
 def generate_work_slots(db: dict) -> list[dict]:
     settings = db.get("workSettings", DEFAULT_WORK_SETTINGS)
     try:
-        current_day = date.today()
+        now = datetime.now(APP_TIMEZONE)
+        current_day = now.date()
         end_day = current_day + timedelta(days=int(settings.get("bookingDaysAhead", 60)))
         start_minutes = parse_minutes(settings["startTime"])
         end_minutes = parse_minutes(settings["endTime"])
@@ -836,7 +842,8 @@ def generate_work_slots(db: dict) -> list[dict]:
         while minutes < end_minutes:
             time_text = format_minutes(minutes)
             current_slot_id = slot_id(date_text, time_text)
-            if current_slot_id not in blocked_ids:
+            slot_datetime = datetime.combine(current_day, datetime.strptime(time_text, "%H:%M").time(), APP_TIMEZONE)
+            if slot_datetime > now and current_slot_id not in blocked_ids:
                 slots.append({"id": current_slot_id, "date": date_text, "time": time_text})
             minutes += step
         current_day += timedelta(days=1)
