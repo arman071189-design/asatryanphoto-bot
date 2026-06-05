@@ -26,6 +26,7 @@ const otherAddressWrap = document.querySelector("#otherAddressWrap");
 const otherAreaWrap = document.querySelector("#otherAreaWrap");
 const referenceFilesInput = document.querySelector("#referenceFiles");
 const referenceFileText = document.querySelector("#referenceFileText");
+const referenceFilePicker = document.querySelector(".file-picker");
 const serviceDescriptionEl = document.querySelector("#serviceDescription");
 const bookingStatusPanel = document.querySelector("#bookingStatusPanel");
 const bookingStatusText = document.querySelector("#bookingStatusText");
@@ -717,6 +718,16 @@ document.querySelectorAll('input[name="otherArea"]').forEach((input) => {
 referenceFilesInput.addEventListener("change", () => {
   const count = referenceFilesInput.files.length;
   referenceFileText.textContent = count ? t[currentLang].filesSelected(count) : t[currentLang].noFiles;
+});
+
+referenceFilePicker.addEventListener("click", () => {
+  referenceFilesInput.click();
+});
+
+referenceFilePicker.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  referenceFilesInput.click();
 });
 
 if (isTelegramDesktop) {

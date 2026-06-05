@@ -363,19 +363,6 @@ input[type="file"] {
   pointer-events: none;
 }
 
-body[data-telegram-desktop="true"] .file-input {
-  position: static;
-  width: 100%;
-  height: auto;
-  opacity: 1;
-  pointer-events: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--ink);
-  padding: 12px;
-}
-
 .file-picker {
   display: flex;
   align-items: center;
@@ -386,6 +373,7 @@ body[data-telegram-desktop="true"] .file-input {
   background: #fff8ed;
   color: var(--ink);
   padding: 10px 12px;
+  cursor: pointer;
 }
 
 .file-picker > span:last-child {
