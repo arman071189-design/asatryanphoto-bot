@@ -147,6 +147,7 @@ const t = {
     confirmSend: "Ուղարկե՞լ հարցումը",
     noTime: "Խնդրում ենք ընտրել ազատ ժամը կամ նշել ցանկալի ժամը։",
     invalidPreferredTime: "Նշեք ժամը 24-ժամյա ձևաչափով, օրինակ՝ 16:00։",
+    missingRequiredFields: "Լրացրեք պարտադիր դաշտերը և փորձեք կրկին։",
     sent: "Հարցումը ուղարկված է։ Սպասեք ֆոտոգրաֆի հաստատմանը։",
     failed: "Չհաջողվեց ուղարկել հարցումը։ Ստուգեք տվյալները և փորձեք կրկին։",
     selectedTimeUnavailable: "Ընտրված ժամը այլևս հասանելի չէ։ Թարմացրեք էջը և ընտրեք ազատ ժամ։",
@@ -200,6 +201,7 @@ const t = {
     confirmSend: "Отправить заявку?",
     noTime: "Выберите свободное время или укажите желаемое время.",
     invalidPreferredTime: "Укажите время в 24-часовом формате, например 16:00.",
+    missingRequiredFields: "Заполните обязательные поля и попробуйте снова.",
     sent: "Заявка отправлена. Ожидайте подтверждения фотографа.",
     failed: "Не удалось отправить заявку. Проверьте данные и попробуйте снова.",
     selectedTimeUnavailable: "Выбранное время больше недоступно. Обновите страницу и выберите свободное время.",
@@ -253,6 +255,7 @@ const t = {
     confirmSend: "Send request?",
     noTime: "Please select an available time or enter a preferred time.",
     invalidPreferredTime: "Enter time in 24-hour format, for example 16:00.",
+    missingRequiredFields: "Fill in the required fields and try again.",
     sent: "Request sent. Please wait for photographer confirmation.",
     failed: "Could not send the request. Check the details and try again.",
     selectedTimeUnavailable: "The selected time is no longer available. Refresh and choose an available time.",
@@ -263,6 +266,7 @@ const t = {
 const apiErrorMessages = {
   "Selected time is not available": "selectedTimeUnavailable",
   "Telegram initData validation failed": "telegramValidationFailed",
+  "Missing required fields": "missingRequiredFields",
 };
 
 function setStatus(message, type = "") {
@@ -491,7 +495,7 @@ function collectPayload() {
   return {
     slotId: state.selectedSlotId,
     requestedDate: bookingDateInput.value,
-    preferredTime: formData.get("preferredTime"),
+    preferredTime: preferredTimeInput.value,
     isPreferredTime: usePreferredTime.checked ? "1" : "",
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
