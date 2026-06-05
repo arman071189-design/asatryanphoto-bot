@@ -140,7 +140,7 @@ const t = {
     sendRequest: "Ուղարկել հարցումը",
     noFiles: "Ֆայլ ընտրված չէ",
     filesSelected: (count) => `${count} ֆայլ ընտրված է`,
-    desktopFilesUnsupported: "Կոմպով ընտրելու համար օգտագործեք ներքևի սովորական Choose Files կոճակը։",
+    desktopFilesUnsupported: "Կոմպով նկարները ուղարկեք հենց այս բոտի chat-ում՝ ամրագրումից հետո։",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -195,7 +195,7 @@ const t = {
     sendRequest: "Отправить заявку",
     noFiles: "Файл не выбран",
     filesSelected: (count) => `Выбрано файлов: ${count}`,
-    desktopFilesUnsupported: "На компьютере выберите фото через обычную кнопку Choose Files ниже.",
+    desktopFilesUnsupported: "На компьютере отправьте фото прямо в чат этого бота после заявки.",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -250,7 +250,7 @@ const t = {
     sendRequest: "Send request",
     noFiles: "No file selected",
     filesSelected: (count) => `${count} file(s) selected`,
-    desktopFilesUnsupported: "On desktop, use the regular Choose Files button below.",
+    desktopFilesUnsupported: "On desktop, send photos directly in this bot chat after booking.",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -721,12 +721,22 @@ referenceFilesInput.addEventListener("change", () => {
 });
 
 referenceFilePicker.addEventListener("click", () => {
+  if (isTelegramDesktop) {
+    referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+    setStatus(t[currentLang].desktopFilesUnsupported, "");
+    return;
+  }
   referenceFilesInput.click();
 });
 
 referenceFilePicker.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
   event.preventDefault();
+  if (isTelegramDesktop) {
+    referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+    setStatus(t[currentLang].desktopFilesUnsupported, "");
+    return;
+  }
   referenceFilesInput.click();
 });
 

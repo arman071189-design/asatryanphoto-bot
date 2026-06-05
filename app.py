@@ -408,6 +408,10 @@ def process_message(message: dict) -> None:
     if not chat_id:
         return
 
+    if message.get("photo") or message.get("document") or message.get("video"):
+        process_reference_chat_file(message)
+        return
+
     keyboard = [[web_button("Բացել Mini App", WEB_APP_URL)]]
     if is_admin_chat(chat_id):
         keyboard.append([web_button("Բացել Admin էջ", admin_app_url())])
@@ -439,6 +443,67 @@ def process_message(message: dict) -> None:
         {
             "chat_id": chat_id,
             "text": "Ամրագրում կատարելու համար սեղմեք /start։",
+        },
+    )
+
+
+def latest_user_booking(chat_id: object) -> dict | None:
+    bookings = [
+        booking
+        for booking in load_db().get("bookings", [])
+        if str(booking.get("telegramUserId", "")) == str(chat_id)
+        and booking.get("status") in {"pending", "approved"}
+    ]
+    if not bookings:
+        return None
+    return sorted(bookings, key=lambda item: int(item.get("createdAt", 0)), reverse=True)[0]
+
+
+def process_reference_chat_file(message: dict) -> None:
+    chat = message.get("chat") or {}
+    chat_id = chat.get("id")
+    if not chat_id:
+        return
+
+    booking = latest_user_booking(chat_id)
+    if not booking:
+        telegram_api(
+            "sendMessage",
+            {
+                "chat_id": chat_id,
+                "text": "Նկարները կցելու համար նախ ուղարկեք ամրագրման հարցումը Mini App-ից, հետո ուղարկեք նկարները այստեղ։",
+            },
+        )
+        return
+
+    caption = "\n".join(
+        [
+            "🖼 Նկար / օրինակ բոտի chat-ից",
+            f"{booking['firstName']} {booking['lastName']}",
+            f"{booking['date']} {booking['time']}",
+            f"Ամրագրում՝ {booking['id']}",
+        ]
+    )
+    results = []
+    for admin_chat_id in ADMIN_CHAT_IDS:
+        result = telegram_api(
+            "copyMessage",
+            {
+                "chat_id": admin_chat_id,
+                "from_chat_id": chat_id,
+                "message_id": message["message_id"],
+                "caption": caption,
+            },
+        )
+        results.append(result)
+
+    telegram_api(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": "Նկարը ստացվեց և ուղարկվեց admin-ին։ Կարող եք ուղարկել ևս նկարներ։"
+            if any(item.get("ok") for item in results)
+            else "Չհաջողվեց ուղարկել նկարը admin-ին։ Խնդրում ենք փորձել կրկին։",
         },
     )
 
