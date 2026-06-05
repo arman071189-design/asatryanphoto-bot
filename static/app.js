@@ -42,6 +42,7 @@ const priceUnitLabels = {
 };
 const telegramPlatform = tg?.platform || "";
 const isTelegramDesktop = ["tdesktop", "weba", "webk", "macos"].includes(telegramPlatform);
+document.body.dataset.telegramDesktop = String(isTelegramDesktop);
 
 function lockHorizontalScroll() {
   document.documentElement.scrollLeft = 0;
@@ -138,7 +139,7 @@ const t = {
     sendRequest: "Ուղարկել հարցումը",
     noFiles: "Ֆայլ ընտրված չէ",
     filesSelected: (count) => `${count} ֆայլ ընտրված է`,
-    desktopFilesUnsupported: "Desktop Telegram-ում նկար ընտրելը կարող է չաշխատել։ Ամրագրումից հետո ուղարկեք նկարները բոտի chat-ով։",
+    desktopFilesUnsupported: "Կոմպով ընտրելու համար օգտագործեք ներքևի սովորական Choose Files կոճակը։",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -193,7 +194,7 @@ const t = {
     sendRequest: "Отправить заявку",
     noFiles: "Файл не выбран",
     filesSelected: (count) => `Выбрано файлов: ${count}`,
-    desktopFilesUnsupported: "В Telegram Desktop выбор фото может не работать. После заявки отправьте фото в чат бота.",
+    desktopFilesUnsupported: "На компьютере выберите фото через обычную кнопку Choose Files ниже.",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -248,7 +249,7 @@ const t = {
     sendRequest: "Send request",
     noFiles: "No file selected",
     filesSelected: (count) => `${count} file(s) selected`,
-    desktopFilesUnsupported: "Photo upload may not work in Telegram Desktop. After booking, send photos in the bot chat.",
+    desktopFilesUnsupported: "On desktop, use the regular Choose Files button below.",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -593,11 +594,9 @@ function collectBookingFormData() {
     data.append(key, value ?? "");
   });
 
-  if (!isTelegramDesktop) {
-    Array.from(form.elements.references.files || []).slice(0, 10).forEach((file) => {
-      data.append("references", file);
-    });
-  }
+  Array.from(form.elements.references.files || []).slice(0, 10).forEach((file) => {
+    data.append("references", file);
+  });
   return data;
 }
 
@@ -720,15 +719,7 @@ referenceFilesInput.addEventListener("change", () => {
   referenceFileText.textContent = count ? t[currentLang].filesSelected(count) : t[currentLang].noFiles;
 });
 
-referenceFilesInput.addEventListener("click", (event) => {
-  if (!isTelegramDesktop) return;
-  event.preventDefault();
-  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
-  setStatus(t[currentLang].desktopFilesUnsupported, "");
-});
-
 if (isTelegramDesktop) {
-  referenceFilesInput.disabled = true;
   referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
 }
 

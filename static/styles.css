@@ -363,6 +363,19 @@ input[type="file"] {
   pointer-events: none;
 }
 
+body[data-telegram-desktop="true"] .file-input {
+  position: static;
+  width: 100%;
+  height: auto;
+  opacity: 1;
+  pointer-events: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 12px;
+}
+
 .file-picker {
   display: flex;
   align-items: center;
@@ -414,6 +427,12 @@ input[type="file"] {
   background: #f7f2ea;
   color: var(--muted);
   cursor: not-allowed;
+}
+
+body[data-telegram-desktop="true"] .file-picker {
+  margin-top: 8px;
+  border-color: var(--line);
+  background: #f7f2ea;
 }
 
 textarea {
