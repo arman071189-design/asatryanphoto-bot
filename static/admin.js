@@ -9,11 +9,20 @@ const refreshBookings = document.querySelector("#refreshBookings");
 
 let nonWorkingDays = [];
 let servicePrices = {};
+const adminTokenFromUrl = new URLSearchParams(window.location.search).get("token") || "";
+if (adminTokenFromUrl) {
+  localStorage.setItem("adminToken", adminTokenFromUrl);
+}
+const adminToken = adminTokenFromUrl || localStorage.getItem("adminToken") || "";
 
 async function requestJson(url, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (adminToken) {
+    headers["X-Admin-Token"] = adminToken;
+  }
   const response = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   });
   const data = await response.json();
   if (!response.ok) {

@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 DATA_DIR = Path(os.environ.get("DATA_DIR", ROOT / "data"))
 DB_PATH = DATA_DIR / "db.json"
+DB_LOCK = threading.RLock()
 
 def load_local_env() -> None:
     env_path = ROOT / ".env"
@@ -45,8 +46,9 @@ ADMIN_CHAT_IDS = [
     if chat_id.strip()
 ]
 ENABLE_POLLING = os.environ.get("ENABLE_POLLING", "1") == "1"
-ALLOW_LOCAL_TESTING = os.environ.get("ALLOW_LOCAL_TESTING", "1") == "1"
+ALLOW_LOCAL_TESTING = os.environ.get("ALLOW_LOCAL_TESTING", "0") == "1"
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://127.0.0.1:8000/app/")
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "")
 ENABLE_SELF_KEEP_ALIVE = os.environ.get("ENABLE_SELF_KEEP_ALIVE", "0") == "1"
 KEEP_ALIVE_INTERVAL_SECONDS = int(os.environ.get("KEEP_ALIVE_INTERVAL_SECONDS", "600"))
 CONFIGURE_BOT_UI = os.environ.get("CONFIGURE_BOT_UI", "1") == "1"
@@ -64,13 +66,7 @@ PHOTO_TYPES = [
     "Մանկական ֆոտոսեսիա",
 ]
 
-DEFAULT_AVAILABILITY = [
-    {"id": "2026-06-02-1100", "date": "2026-06-02", "time": "11:00", "reserved": False},
-    {"id": "2026-06-02-1500", "date": "2026-06-02", "time": "15:00", "reserved": False},
-    {"id": "2026-06-04-1200", "date": "2026-06-04", "time": "12:00", "reserved": False},
-    {"id": "2026-06-05-1600", "date": "2026-06-05", "time": "16:00", "reserved": False},
-    {"id": "2026-06-07-1000", "date": "2026-06-07", "time": "10:00", "reserved": False},
-]
+DEFAULT_AVAILABILITY = []
 
 DEFAULT_WORK_SETTINGS = {
     "dateFrom": "2026-06-01",
@@ -176,17 +172,19 @@ def ensure_db() -> None:
 
 
 def load_db() -> dict:
-    ensure_db()
-    with DB_PATH.open("r", encoding="utf-8") as db_file:
-        return json.load(db_file)
+    with DB_LOCK:
+        ensure_db()
+        with DB_PATH.open("r", encoding="utf-8") as db_file:
+            return json.load(db_file)
 
 
 def save_db(data: dict) -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    temp_path = DB_PATH.with_suffix(".tmp")
-    with temp_path.open("w", encoding="utf-8") as db_file:
-        json.dump(data, db_file, ensure_ascii=False, indent=2)
-    temp_path.replace(DB_PATH)
+    with DB_LOCK:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        temp_path = DB_PATH.with_suffix(".tmp")
+        with temp_path.open("w", encoding="utf-8") as db_file:
+            json.dump(data, db_file, ensure_ascii=False, indent=2)
+        temp_path.replace(DB_PATH)
 
 
 def send_json(handler: BaseHTTPRequestHandler, data: object, status: int = 200) -> None:
@@ -239,7 +237,8 @@ def read_booking_request(handler: BaseHTTPRequestHandler) -> tuple[dict, list[di
                     }
                 )
             else:
-                payload[key] = field.value
+                if key not in payload:
+                    payload[key] = field.value
 
     return payload, files
 
@@ -514,7 +513,7 @@ def polling_loop() -> None:
         return
 
     print("Telegram local polling started")
-    telegram_api("deleteWebhook", {"drop_pending_updates": False})
+    telegram_api("deleteWebhook", {"drop_pending_updates": True})
     offset = 0
     while True:
         result = telegram_api(
@@ -586,9 +585,17 @@ def validate_init_data(init_data: str) -> tuple[bool, dict]:
             fields.append(f"{key}={value}")
             auth_data[key] = value
 
-    secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode("utf-8"), hashlib.sha256).digest()
+    secret_key = hmac.new(
+        key=b"WebAppData",
+        msg=BOT_TOKEN.encode("utf-8"),
+        digestmod=hashlib.sha256,
+    ).digest()
     check_string = "\n".join(sorted(fields)).encode("utf-8")
-    calculated_hash = hmac.new(secret_key, check_string, hashlib.sha256).hexdigest()
+    calculated_hash = hmac.new(
+        key=secret_key,
+        msg=check_string,
+        digestmod=hashlib.sha256,
+    ).hexdigest()
 
     if not hmac.compare_digest(calculated_hash, received_hash):
         return False, {}
@@ -881,6 +888,10 @@ def generate_work_slots(db: dict) -> list[dict]:
         now = datetime.now(APP_TIMEZONE)
         current_day = now.date()
         end_day = current_day + timedelta(days=int(settings.get("bookingDaysAhead", 60)))
+        if settings.get("dateFrom"):
+            current_day = max(current_day, datetime.strptime(settings["dateFrom"], "%Y-%m-%d").date())
+        if settings.get("dateTo"):
+            end_day = min(end_day, datetime.strptime(settings["dateTo"], "%Y-%m-%d").date())
         start_minutes = parse_minutes(settings["startTime"])
         end_minutes = parse_minutes(settings["endTime"])
         step = int(settings.get("slotMinutes", 60))
@@ -895,7 +906,12 @@ def generate_work_slots(db: dict) -> list[dict]:
     for booking in db.get("bookings", []):
         if booking.get("status") in {"pending", "approved"} and booking.get("slotId"):
             booked_ids.update(blocked_ids_for_booking(booking, settings))
-    blocked_ids = booked_ids
+    busy_ids = {
+        slot_id(item["date"], item["time"])
+        for item in db.get("busySlots", [])
+        if item.get("date") and item.get("time")
+    }
+    blocked_ids = booked_ids | busy_ids
 
     slots = []
     while current_day <= end_day:
@@ -1042,6 +1058,17 @@ def update_booking_status(booking_id: str, status: str) -> dict | None:
 
 
 class AppHandler(BaseHTTPRequestHandler):
+    def is_admin_request(self) -> bool:
+        if not ADMIN_SECRET:
+            return True
+        return hmac.compare_digest(self.headers.get("X-Admin-Token", ""), ADMIN_SECRET)
+
+    def require_admin(self) -> bool:
+        if self.is_admin_request():
+            return True
+        send_json(self, {"error": "admin authentication required"}, 401)
+        return False
+
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/":
@@ -1061,6 +1088,8 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/health":
             send_json(self, {"ok": True, "service": "AsatryanPhoto"})
+            return
+        if parsed.path.startswith("/api/admin/") and not self.require_admin():
             return
         if parsed.path == "/api/admin/bookings":
             send_json(self, {"bookings": load_db()["bookings"]})
@@ -1103,6 +1132,8 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith("/api/admin/") and not self.require_admin():
+            return
         if parsed.path == "/api/bookings":
             payload, reference_files = read_booking_request(self)
             status, data = create_booking(payload, reference_files)
@@ -1194,11 +1225,11 @@ class AppHandler(BaseHTTPRequestHandler):
             return
 
         db = load_db()
-        slot_id = f"{date}-{time_value.replace(':', '')}"
-        if any(slot["id"] == slot_id for slot in db["availability"]):
+        new_slot_id = slot_id(date, time_value)
+        if any(slot["id"] == new_slot_id for slot in db["availability"]):
             send_json(self, {"error": "slot already exists"}, 409)
             return
-        slot = {"id": slot_id, "date": date, "time": time_value, "reserved": False}
+        slot = {"id": new_slot_id, "date": date, "time": time_value, "reserved": False}
         db["availability"].append(slot)
         db["availability"].sort(key=lambda item: (item["date"], item["time"]))
         save_db(db)
@@ -1313,6 +1344,7 @@ class AppHandler(BaseHTTPRequestHandler):
             "slotMinutes": slot_minutes,
             "studioBlockMinutes": studio_block_minutes,
             "otherBlockMinutes": other_block_minutes,
+            "bookingDaysAhead": int(db.get("workSettings", {}).get("bookingDaysAhead", 60)),
         }
         save_db(db)
         send_json(self, {"workSettings": db["workSettings"], "availability": generate_work_slots(db)})
