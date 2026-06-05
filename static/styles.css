@@ -255,6 +255,11 @@ h2 {
   text-align: left;
 }
 
+#preferredTime {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
 .check-row {
   display: flex;
   align-items: center;

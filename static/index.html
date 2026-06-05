@@ -44,7 +44,7 @@
         <span data-i18n="availableDate">Ազատ օր</span>
         <input id="bookingDate" type="date">
       </label>
-      <h3 class="subhead" data-i18n="availableTimesTitle">Այս օրվա ազատ ժամերը</h3>
+      <h3 id="slotsTitle" class="subhead" data-i18n="availableTimesTitle">Այս օրվա ազատ ժամերը</h3>
       <div id="slots" class="slots" aria-live="polite"></div>
       <label class="check-row">
         <input id="usePreferredTime" type="checkbox">
@@ -52,7 +52,7 @@
       </label>
       <label id="preferredTimeWrap" class="hidden calendar-field">
         <span data-i18n="preferredTime">Ցանկալի ժամ</span>
-        <input id="preferredTime" name="preferredTime" type="time">
+        <input id="preferredTime" name="preferredTime" type="text" inputmode="numeric" autocomplete="off" placeholder="16:00" maxlength="5" pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$">
       </label>
     </section>
 
@@ -185,6 +185,6 @@
     </form>
   </main>
 
-  <script src="./app.js?v=20260604-slot-errors"></script>
+  <script src="./app.js?v=20260605-preferred-time-ui"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ const state = {
 };
 
 const slotsEl = document.querySelector("#slots");
+const slotsTitle = document.querySelector("#slotsTitle");
 const slotCountEl = document.querySelector("#slotCount");
 const bookingDateInput = document.querySelector("#bookingDate");
 const usePreferredTime = document.querySelector("#usePreferredTime");
@@ -145,6 +146,7 @@ const t = {
     summaryTitle: "Ստուգեք ամրագրումը",
     confirmSend: "Ուղարկե՞լ հարցումը",
     noTime: "Խնդրում ենք ընտրել ազատ ժամը կամ նշել ցանկալի ժամը։",
+    invalidPreferredTime: "Նշեք ժամը 24-ժամյա ձևաչափով, օրինակ՝ 16:00։",
     sent: "Հարցումը ուղարկված է։ Սպասեք ֆոտոգրաֆի հաստատմանը։",
     failed: "Չհաջողվեց ուղարկել հարցումը։ Ստուգեք տվյալները և փորձեք կրկին։",
     selectedTimeUnavailable: "Ընտրված ժամը այլևս հասանելի չէ։ Թարմացրեք էջը և ընտրեք ազատ ժամ։",
@@ -197,6 +199,7 @@ const t = {
     summaryTitle: "Проверьте бронирование",
     confirmSend: "Отправить заявку?",
     noTime: "Выберите свободное время или укажите желаемое время.",
+    invalidPreferredTime: "Укажите время в 24-часовом формате, например 16:00.",
     sent: "Заявка отправлена. Ожидайте подтверждения фотографа.",
     failed: "Не удалось отправить заявку. Проверьте данные и попробуйте снова.",
     selectedTimeUnavailable: "Выбранное время больше недоступно. Обновите страницу и выберите свободное время.",
@@ -249,6 +252,7 @@ const t = {
     summaryTitle: "Review Booking",
     confirmSend: "Send request?",
     noTime: "Please select an available time or enter a preferred time.",
+    invalidPreferredTime: "Enter time in 24-hour format, for example 16:00.",
     sent: "Request sent. Please wait for photographer confirmation.",
     failed: "Could not send the request. Check the details and try again.",
     selectedTimeUnavailable: "The selected time is no longer available. Refresh and choose an available time.",
@@ -360,15 +364,51 @@ function renderSlots() {
 function updatePreferredTimeMode() {
   const enabled = usePreferredTime.checked;
   preferredTimeWrap.classList.toggle("hidden", !enabled);
+  slotsTitle.classList.toggle("hidden", enabled);
+  slotsEl.classList.toggle("hidden", enabled);
   preferredTimeInput.required = enabled;
   selectedSlotText.required = !enabled;
   selectedSlotText.setCustomValidity("");
-  slotsEl.classList.toggle("disabled-options", enabled);
   if (enabled) {
     state.selectedSlotId = "";
     selectedSlotText.value = bookingDateInput.value ? `${bookingDateInput.value} ${preferredTimeInput.value || ""}` : "";
     renderSlots();
+  } else {
+    preferredTimeInput.value = "";
+    selectedSlotText.value = "";
+    renderSlots();
   }
+}
+
+function normalizePreferredTime(value) {
+  const compact = value.trim().replace(/[^\d]/g, "");
+  if (/^\d{1,2}$/.test(compact)) {
+    return `${compact.padStart(2, "0")}:00`;
+  }
+  if (/^\d{3,4}$/.test(compact)) {
+    return `${compact.slice(0, -2).padStart(2, "0")}:${compact.slice(-2)}`;
+  }
+  return value.trim();
+}
+
+function isValidPreferredTime(value) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+function syncPreferredTime() {
+  if (!usePreferredTime.checked) return true;
+  const normalized = normalizePreferredTime(preferredTimeInput.value);
+  preferredTimeInput.value = normalized;
+  if (!isValidPreferredTime(normalized)) {
+    preferredTimeInput.setCustomValidity(t[currentLang].invalidPreferredTime);
+    preferredTimeInput.reportValidity();
+    return false;
+  }
+  preferredTimeInput.setCustomValidity("");
+  if (bookingDateInput.value) {
+    selectedSlotText.value = `${bookingDateInput.value} ${normalized}`;
+  }
+  return true;
 }
 
 function renderPhotoTypes(photoTypes) {
@@ -489,6 +529,10 @@ async function submitBooking(event) {
   if (!state.selectedSlotId) {
     if (!usePreferredTime.checked || !bookingDateInput.value || !preferredTimeInput.value) {
       setStatus(t[currentLang].noTime, "error");
+      return;
+    }
+    if (!syncPreferredTime()) {
+      setStatus(t[currentLang].invalidPreferredTime, "error");
       return;
     }
   }
@@ -638,10 +682,10 @@ bookingDateInput.addEventListener("change", () => {
 usePreferredTime.addEventListener("change", updatePreferredTimeMode);
 
 preferredTimeInput.addEventListener("change", () => {
-  if (usePreferredTime.checked && bookingDateInput.value) {
-    selectedSlotText.value = `${bookingDateInput.value} ${preferredTimeInput.value}`;
-  }
+  syncPreferredTime();
 });
+
+preferredTimeInput.addEventListener("blur", syncPreferredTime);
 
 form.addEventListener("submit", submitBooking);
 
