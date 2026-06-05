@@ -409,6 +409,13 @@ input[type="file"] {
   box-shadow: 0 0 0 3px rgba(47, 111, 115, 0.16);
 }
 
+.file-input:disabled + .file-picker {
+  border-color: var(--line);
+  background: #f7f2ea;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 textarea {
   resize: vertical;
 }

@@ -40,6 +40,8 @@ const priceUnitLabels = {
   ru: "1 \u0447\u0430\u0441",
   en: "1 hour",
 };
+const telegramPlatform = tg?.platform || "";
+const isTelegramDesktop = ["tdesktop", "weba", "webk", "macos"].includes(telegramPlatform);
 
 function lockHorizontalScroll() {
   document.documentElement.scrollLeft = 0;
@@ -136,6 +138,7 @@ const t = {
     sendRequest: "Ուղարկել հարցումը",
     noFiles: "Ֆայլ ընտրված չէ",
     filesSelected: (count) => `${count} ֆայլ ընտրված է`,
+    desktopFilesUnsupported: "Desktop Telegram-ում նկար ընտրելը կարող է չաշխատել։ Ամրագրումից հետո ուղարկեք նկարները բոտի chat-ով։",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -190,6 +193,7 @@ const t = {
     sendRequest: "Отправить заявку",
     noFiles: "Файл не выбран",
     filesSelected: (count) => `Выбрано файлов: ${count}`,
+    desktopFilesUnsupported: "В Telegram Desktop выбор фото может не работать. После заявки отправьте фото в чат бота.",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -244,6 +248,7 @@ const t = {
     sendRequest: "Send request",
     noFiles: "No file selected",
     filesSelected: (count) => `${count} file(s) selected`,
+    desktopFilesUnsupported: "Photo upload may not work in Telegram Desktop. After booking, send photos in the bot chat.",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -287,7 +292,9 @@ function applyLanguage() {
   });
   referenceFileText.textContent = referenceFilesInput.files.length
     ? t[currentLang].filesSelected(referenceFilesInput.files.length)
-    : t[currentLang].noFiles;
+    : isTelegramDesktop
+      ? t[currentLang].desktopFilesUnsupported
+      : t[currentLang].noFiles;
   if (state.photoTypes.length) renderPhotoTypes(state.photoTypes);
   renderSlots();
   updateServicePrice();
@@ -586,9 +593,11 @@ function collectBookingFormData() {
     data.append(key, value ?? "");
   });
 
-  Array.from(form.elements.references.files || []).slice(0, 10).forEach((file) => {
-    data.append("references", file);
-  });
+  if (!isTelegramDesktop) {
+    Array.from(form.elements.references.files || []).slice(0, 10).forEach((file) => {
+      data.append("references", file);
+    });
+  }
   return data;
 }
 
@@ -710,6 +719,18 @@ referenceFilesInput.addEventListener("change", () => {
   const count = referenceFilesInput.files.length;
   referenceFileText.textContent = count ? t[currentLang].filesSelected(count) : t[currentLang].noFiles;
 });
+
+referenceFilesInput.addEventListener("click", (event) => {
+  if (!isTelegramDesktop) return;
+  event.preventDefault();
+  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+  setStatus(t[currentLang].desktopFilesUnsupported, "");
+});
+
+if (isTelegramDesktop) {
+  referenceFilesInput.disabled = true;
+  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+}
 
 document.querySelectorAll("[data-lang]").forEach((button) => {
   button.addEventListener("click", () => {
