@@ -28,6 +28,8 @@ const referenceFilesInput = document.querySelector("#referenceFiles");
 const referenceFileText = document.querySelector("#referenceFileText");
 const referenceFilePicker = document.querySelector(".file-picker");
 const desktopReferenceGuide = document.querySelector("#desktopReferenceGuide");
+const desktopGuideStatus = document.querySelector("#desktopGuideStatus");
+const desktopBookingCode = document.querySelector("#desktopBookingCode");
 const copyReferenceGuide = document.querySelector("#copyReferenceGuide");
 const closeToChat = document.querySelector("#closeToChat");
 const serviceDescriptionEl = document.querySelector("#serviceDescription");
@@ -145,11 +147,15 @@ const t = {
     filesSelected: (count) => `${count} ֆայլ ընտրված է`,
     desktopFilesUnsupported: "Կոմպով նկարները ուղարկեք հենց այս բոտի chat-ում՝ ամրագրումից հետո։",
     desktopGuideTitle: "Կոմպով նկարներ ուղարկելու ձևը",
-    desktopGuideText: "Ամրագրումը ուղարկելուց հետո նկարները ուղարկեք հենց այս բոտի chat-ում։ Բոտը դրանք ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։",
-    desktopGuideHint: "Կարող եք ուղարկել մեկ նկար, մի քանի նկար կամ ալբոմ։",
-    desktopCopyPrompt: "Պատճենել հուշումը",
-    desktopCloseToChat: "Փակել և ուղարկել chat-ում",
-    desktopCopied: "Հուշումը պատճենված է։ Փակեք Mini App-ը և նկարները ուղարկեք բոտի chat-ում։",
+    desktopGuideHint: "Բոտը նկարները ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։",
+    desktopStepBook: "Ուղարկեք ամրագրման հարցումը։",
+    desktopStepSend: "Փակեք Mini App-ը և նկարները ուղարկեք այս բոտի chat-ում։",
+    desktopStatusBefore: "Նկարները կարող եք ուղարկել ամրագրումից հետո։",
+    desktopStatusAfter: "Ամրագրումը ստացվել է․ հիմա կարող եք ուղարկել նկարները chat-ում։",
+    desktopBookingLabel: "Ամրագրման ID",
+    desktopCopyPrompt: "Պատճենել ամրագրման ID-ն",
+    desktopCloseToChat: "Փակել Mini App-ը",
+    desktopCopied: "Ամրագրման ID-ն պատճենված է։ Փակեք Mini App-ը և նկարները ուղարկեք բոտի chat-ում։",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -206,11 +212,15 @@ const t = {
     filesSelected: (count) => `Выбрано файлов: ${count}`,
     desktopFilesUnsupported: "На компьютере отправьте фото прямо в чат этого бота после заявки.",
     desktopGuideTitle: "Как отправить фото с компьютера",
-    desktopGuideText: "После отправки заявки отправьте фото прямо в чат этого бота. Бот автоматически привяжет их к вашей последней заявке и отправит администратору.",
-    desktopGuideHint: "Можно отправить одно фото, несколько фото или альбом.",
-    desktopCopyPrompt: "Скопировать подсказку",
-    desktopCloseToChat: "Закрыть и отправить в чат",
-    desktopCopied: "Подсказка скопирована. Закройте Mini App и отправьте фото в чат бота.",
+    desktopGuideHint: "Бот автоматически привяжет фото к вашей последней заявке и отправит администратору.",
+    desktopStepBook: "Отправьте заявку на бронирование.",
+    desktopStepSend: "Закройте Mini App и отправьте фото в чат этого бота.",
+    desktopStatusBefore: "Фото можно отправить после бронирования.",
+    desktopStatusAfter: "Заявка получена. Теперь отправьте фото в чат.",
+    desktopBookingLabel: "ID заявки",
+    desktopCopyPrompt: "Скопировать ID заявки",
+    desktopCloseToChat: "Закрыть Mini App",
+    desktopCopied: "ID заявки скопирован. Закройте Mini App и отправьте фото в чат бота.",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -267,11 +277,15 @@ const t = {
     filesSelected: (count) => `${count} file(s) selected`,
     desktopFilesUnsupported: "On desktop, send photos directly in this bot chat after booking.",
     desktopGuideTitle: "How to send photos from desktop",
-    desktopGuideText: "After sending the booking request, send photos directly in this bot chat. The bot will attach them to your latest booking and forward them to admin.",
-    desktopGuideHint: "You can send one photo, multiple photos, or an album.",
-    desktopCopyPrompt: "Copy hint",
-    desktopCloseToChat: "Close and send in chat",
-    desktopCopied: "Hint copied. Close the Mini App and send photos in the bot chat.",
+    desktopGuideHint: "The bot will attach photos to your latest booking and forward them to admin.",
+    desktopStepBook: "Send the booking request.",
+    desktopStepSend: "Close the Mini App and send photos in this bot chat.",
+    desktopStatusBefore: "You can send photos after booking.",
+    desktopStatusAfter: "Booking received. Now send photos in chat.",
+    desktopBookingLabel: "Booking ID",
+    desktopCopyPrompt: "Copy booking ID",
+    desktopCloseToChat: "Close Mini App",
+    desktopCopied: "Booking ID copied. Close the Mini App and send photos in the bot chat.",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -306,8 +320,7 @@ function setStatus(message, type = "") {
 
 function desktopReferencePrompt() {
   const bookingId = localStorage.getItem("lastBookingId") || "";
-  const bookingPart = bookingId ? `\nBooking ID: ${bookingId}` : "";
-  return `${t[currentLang].desktopGuideTitle}\n${t[currentLang].desktopGuideText}${bookingPart}`;
+  return bookingId ? `${t[currentLang].desktopBookingLabel}: ${bookingId}` : t[currentLang].desktopGuideTitle;
 }
 
 function updateDesktopReferenceGuide() {
@@ -316,6 +329,11 @@ function updateDesktopReferenceGuide() {
     return;
   }
   desktopReferenceGuide.classList.remove("hidden");
+  const bookingId = localStorage.getItem("lastBookingId") || "";
+  desktopGuideStatus.textContent = bookingId ? t[currentLang].desktopStatusAfter : t[currentLang].desktopStatusBefore;
+  desktopBookingCode.textContent = bookingId ? `${t[currentLang].desktopBookingLabel}: ${bookingId}` : "";
+  desktopBookingCode.classList.toggle("hidden", !bookingId);
+  copyReferenceGuide.disabled = !bookingId;
   referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
 }
 

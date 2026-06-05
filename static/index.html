@@ -180,12 +180,22 @@
           </span>
         </span>
         <div id="desktopReferenceGuide" class="desktop-reference-guide hidden">
-          <strong data-i18n="desktopGuideTitle">Կոմպով նկարներ ուղարկելու ձևը</strong>
-          <p data-i18n="desktopGuideText">Ամրագրումը ուղարկելուց հետո նկարները ուղարկեք հենց այս բոտի chat-ում։ Բոտը դրանք ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։</p>
-          <small data-i18n="desktopGuideHint">Կարող եք ուղարկել մեկ նկար, մի քանի նկար կամ ալբոմ։</small>
+          <div class="desktop-guide-head">
+            <span class="desktop-guide-icon" aria-hidden="true">+</span>
+            <span>
+              <strong data-i18n="desktopGuideTitle">Կոմպով նկարներ ուղարկելու ձևը</strong>
+              <small id="desktopGuideStatus"></small>
+            </span>
+          </div>
+          <ol class="desktop-guide-steps">
+            <li data-i18n="desktopStepBook">Ուղարկեք ամրագրման հարցումը։</li>
+            <li data-i18n="desktopStepSend">Փակեք Mini App-ը և նկարները ուղարկեք այս բոտի chat-ում։</li>
+          </ol>
+          <div id="desktopBookingCode" class="desktop-booking-code hidden"></div>
+          <small data-i18n="desktopGuideHint">Բոտը նկարները ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։</small>
           <div class="desktop-reference-actions">
-            <button id="copyReferenceGuide" type="button" data-i18n="desktopCopyPrompt">Պատճենել հուշումը</button>
-            <button id="closeToChat" type="button" data-i18n="desktopCloseToChat">Փակել և ուղարկել chat-ում</button>
+            <button id="copyReferenceGuide" type="button" data-i18n="desktopCopyPrompt">Պատճենել ամրագրման ID-ն</button>
+            <button id="closeToChat" type="button" data-i18n="desktopCloseToChat">Փակել Mini App-ը</button>
           </div>
         </div>
       </label>
@@ -195,6 +205,6 @@
     </form>
   </main>
 
-  <script src="./app.js?v=20260605-desktop-reference-guide"></script>
+  <script src="./app.js?v=20260605-smart-desktop-references"></script>
 </body>
 </html>
