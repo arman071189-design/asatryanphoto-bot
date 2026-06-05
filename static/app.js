@@ -5,6 +5,7 @@ const state = {
   selectedSlotId: "",
   slots: [],
   photoTypes: [],
+  workSettings: {},
 };
 
 const slotsEl = document.querySelector("#slots");
@@ -14,6 +15,7 @@ const bookingDateInput = document.querySelector("#bookingDate");
 const usePreferredTime = document.querySelector("#usePreferredTime");
 const preferredTimeWrap = document.querySelector("#preferredTimeWrap");
 const preferredTimeInput = document.querySelector("#preferredTime");
+const preferredTimeOptions = document.querySelector("#preferredTimeOptions");
 const form = document.querySelector("#bookingForm");
 const statusEl = document.querySelector("#status");
 const selectedSlotText = document.querySelector("#selectedSlotText");
@@ -365,6 +367,64 @@ function renderSlots() {
   });
 }
 
+function timeToMinutes(value) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(minutes) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function isPastPreferredTime(timeValue) {
+  if (!bookingDateInput.value) return false;
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+  if (bookingDateInput.value !== today) return false;
+  return timeToMinutes(timeValue) <= now.getHours() * 60 + now.getMinutes();
+}
+
+function preferredTimeValues() {
+  const settings = state.workSettings || {};
+  const start = settings.startTime || "10:00";
+  const end = settings.endTime || "20:00";
+  const step = Number(settings.slotMinutes || 60);
+  const startMinutes = timeToMinutes(start);
+  const endMinutes = timeToMinutes(end);
+  if (!step || startMinutes >= endMinutes) return [];
+
+  const values = [];
+  for (let minutes = startMinutes; minutes < endMinutes; minutes += step) {
+    const timeValue = minutesToTime(minutes);
+    if (!isPastPreferredTime(timeValue)) {
+      values.push(timeValue);
+    }
+  }
+  return values;
+}
+
+function renderPreferredTimeOptions() {
+  preferredTimeOptions.innerHTML = "";
+  preferredTimeValues().forEach((timeValue) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "preferred-time-chip";
+    button.dataset.active = String(preferredTimeInput.value === timeValue);
+    button.textContent = timeValue;
+    button.addEventListener("click", () => {
+      preferredTimeInput.value = timeValue;
+      syncPreferredTime(false);
+      renderPreferredTimeOptions();
+      tg?.HapticFeedback?.selectionChanged();
+    });
+    preferredTimeOptions.append(button);
+  });
+}
+
 function updatePreferredTimeMode() {
   const enabled = usePreferredTime.checked;
   preferredTimeWrap.classList.toggle("hidden", !enabled);
@@ -377,10 +437,12 @@ function updatePreferredTimeMode() {
     state.selectedSlotId = "";
     selectedSlotText.value = bookingDateInput.value ? `${bookingDateInput.value} ${preferredTimeInput.value || ""}` : "";
     renderSlots();
+    renderPreferredTimeOptions();
   } else {
     preferredTimeInput.value = "";
     selectedSlotText.value = "";
     renderSlots();
+    renderPreferredTimeOptions();
   }
 }
 
@@ -399,13 +461,13 @@ function isValidPreferredTime(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
-function syncPreferredTime() {
+function syncPreferredTime(showValidation = true) {
   if (!usePreferredTime.checked) return true;
   const normalized = normalizePreferredTime(preferredTimeInput.value);
   preferredTimeInput.value = normalized;
   if (!isValidPreferredTime(normalized)) {
     preferredTimeInput.setCustomValidity(t[currentLang].invalidPreferredTime);
-    preferredTimeInput.reportValidity();
+    if (showValidation) preferredTimeInput.reportValidity();
     return false;
   }
   preferredTimeInput.setCustomValidity("");
@@ -468,12 +530,14 @@ async function loadAvailability() {
   const data = await response.json();
   state.slots = data.availability;
   state.photoTypes = data.photoTypes || [];
+  state.workSettings = data.workSettings || {};
   servicePrices = data.servicePrices || {};
   renderPhotoTypes(state.photoTypes);
   updateServicePrice();
   updateServiceDescription();
   renderCalendar();
   renderSlots();
+  renderPreferredTimeOptions();
 }
 
 function updateLocationFields() {
@@ -680,6 +744,7 @@ bookingDateInput.addEventListener("change", () => {
     selectedSlotText.value = `${bookingDateInput.value} ${preferredTimeInput.value}`;
   }
   renderSlots();
+  renderPreferredTimeOptions();
   tg?.HapticFeedback?.selectionChanged();
 });
 
@@ -687,9 +752,13 @@ usePreferredTime.addEventListener("change", updatePreferredTimeMode);
 
 preferredTimeInput.addEventListener("change", () => {
   syncPreferredTime();
+  renderPreferredTimeOptions();
 });
 
-preferredTimeInput.addEventListener("blur", syncPreferredTime);
+preferredTimeInput.addEventListener("blur", () => {
+  syncPreferredTime();
+  renderPreferredTimeOptions();
+});
 
 form.addEventListener("submit", submitBooking);
 

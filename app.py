@@ -990,6 +990,7 @@ class AppHandler(BaseHTTPRequestHandler):
                     "availability": public_availability(),
                     "photoTypes": PHOTO_TYPES,
                     "servicePrices": settings["servicePrices"],
+                    "workSettings": settings["workSettings"],
                 },
             )
             return

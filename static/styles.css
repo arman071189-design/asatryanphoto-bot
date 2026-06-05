@@ -260,6 +260,39 @@ h2 {
   letter-spacing: 0;
 }
 
+.preferred-time-options {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 6px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.preferred-time-chip {
+  flex: 0 0 auto;
+  min-width: 76px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  padding: 8px 12px;
+}
+
+.preferred-time-chip[data-active="true"] {
+  border-color: var(--gold-dark);
+  background: #fff8ed;
+  color: var(--gold-dark);
+  box-shadow: inset 0 0 0 1px var(--gold-dark);
+}
+
 .check-row {
   display: flex;
   align-items: center;
