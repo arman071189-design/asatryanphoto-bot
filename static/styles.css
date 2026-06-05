@@ -423,6 +423,51 @@ body[data-telegram-desktop="true"] .file-picker {
   background: #f7f2ea;
 }
 
+.desktop-reference-guide {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 12px;
+}
+
+.desktop-reference-guide strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.desktop-reference-guide p,
+.desktop-reference-guide small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.desktop-reference-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.desktop-reference-actions button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.desktop-reference-actions button:last-child {
+  border-color: var(--gold-dark);
+  background: #fff8ed;
+  color: var(--gold-dark);
+}
+
 textarea {
   resize: vertical;
 }

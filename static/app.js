@@ -27,6 +27,9 @@ const otherAreaWrap = document.querySelector("#otherAreaWrap");
 const referenceFilesInput = document.querySelector("#referenceFiles");
 const referenceFileText = document.querySelector("#referenceFileText");
 const referenceFilePicker = document.querySelector(".file-picker");
+const desktopReferenceGuide = document.querySelector("#desktopReferenceGuide");
+const copyReferenceGuide = document.querySelector("#copyReferenceGuide");
+const closeToChat = document.querySelector("#closeToChat");
 const serviceDescriptionEl = document.querySelector("#serviceDescription");
 const bookingStatusPanel = document.querySelector("#bookingStatusPanel");
 const bookingStatusText = document.querySelector("#bookingStatusText");
@@ -141,6 +144,12 @@ const t = {
     noFiles: "Ֆայլ ընտրված չէ",
     filesSelected: (count) => `${count} ֆայլ ընտրված է`,
     desktopFilesUnsupported: "Կոմպով նկարները ուղարկեք հենց այս բոտի chat-ում՝ ամրագրումից հետո։",
+    desktopGuideTitle: "Կոմպով նկարներ ուղարկելու ձևը",
+    desktopGuideText: "Ամրագրումը ուղարկելուց հետո նկարները ուղարկեք հենց այս բոտի chat-ում։ Բոտը դրանք ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։",
+    desktopGuideHint: "Կարող եք ուղարկել մեկ նկար, մի քանի նկար կամ ալբոմ։",
+    desktopCopyPrompt: "Պատճենել հուշումը",
+    desktopCloseToChat: "Փակել և ուղարկել chat-ում",
+    desktopCopied: "Հուշումը պատճենված է։ Փակեք Mini App-ը և նկարները ուղարկեք բոտի chat-ում։",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -196,6 +205,12 @@ const t = {
     noFiles: "Файл не выбран",
     filesSelected: (count) => `Выбрано файлов: ${count}`,
     desktopFilesUnsupported: "На компьютере отправьте фото прямо в чат этого бота после заявки.",
+    desktopGuideTitle: "Как отправить фото с компьютера",
+    desktopGuideText: "После отправки заявки отправьте фото прямо в чат этого бота. Бот автоматически привяжет их к вашей последней заявке и отправит администратору.",
+    desktopGuideHint: "Можно отправить одно фото, несколько фото или альбом.",
+    desktopCopyPrompt: "Скопировать подсказку",
+    desktopCloseToChat: "Закрыть и отправить в чат",
+    desktopCopied: "Подсказка скопирована. Закройте Mini App и отправьте фото в чат бота.",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -251,6 +266,12 @@ const t = {
     noFiles: "No file selected",
     filesSelected: (count) => `${count} file(s) selected`,
     desktopFilesUnsupported: "On desktop, send photos directly in this bot chat after booking.",
+    desktopGuideTitle: "How to send photos from desktop",
+    desktopGuideText: "After sending the booking request, send photos directly in this bot chat. The bot will attach them to your latest booking and forward them to admin.",
+    desktopGuideHint: "You can send one photo, multiple photos, or an album.",
+    desktopCopyPrompt: "Copy hint",
+    desktopCloseToChat: "Close and send in chat",
+    desktopCopied: "Hint copied. Close the Mini App and send photos in the bot chat.",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -283,6 +304,21 @@ function setStatus(message, type = "") {
   statusEl.dataset.type = type;
 }
 
+function desktopReferencePrompt() {
+  const bookingId = localStorage.getItem("lastBookingId") || "";
+  const bookingPart = bookingId ? `\nBooking ID: ${bookingId}` : "";
+  return `${t[currentLang].desktopGuideTitle}\n${t[currentLang].desktopGuideText}${bookingPart}`;
+}
+
+function updateDesktopReferenceGuide() {
+  if (!isTelegramDesktop) {
+    desktopReferenceGuide.classList.add("hidden");
+    return;
+  }
+  desktopReferenceGuide.classList.remove("hidden");
+  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+}
+
 function applyLanguage() {
   if (!t[currentLang]) currentLang = "hy";
   document.documentElement.lang = currentLang;
@@ -297,6 +333,7 @@ function applyLanguage() {
     : isTelegramDesktop
       ? t[currentLang].desktopFilesUnsupported
       : t[currentLang].noFiles;
+  updateDesktopReferenceGuide();
   if (state.photoTypes.length) renderPhotoTypes(state.photoTypes);
   renderSlots();
   updateServicePrice();
@@ -637,6 +674,7 @@ async function submitBooking(event) {
     }
 
     localStorage.setItem("lastBookingId", data.booking.id);
+    updateDesktopReferenceGuide();
     renderLastBookingStatus(data.booking);
     setStatus(t[currentLang].sent, "success");
     tg?.HapticFeedback?.notificationOccurred("success");
@@ -741,8 +779,23 @@ referenceFilePicker.addEventListener("keydown", (event) => {
 });
 
 if (isTelegramDesktop) {
-  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
+  updateDesktopReferenceGuide();
 }
+
+copyReferenceGuide.addEventListener("click", async () => {
+  const prompt = desktopReferencePrompt();
+  try {
+    await navigator.clipboard.writeText(prompt);
+    setStatus(t[currentLang].desktopCopied, "success");
+  } catch {
+    setStatus(prompt, "");
+  }
+});
+
+closeToChat.addEventListener("click", () => {
+  setStatus(t[currentLang].desktopFilesUnsupported, "");
+  tg?.close();
+});
 
 document.querySelectorAll("[data-lang]").forEach((button) => {
   button.addEventListener("click", () => {
