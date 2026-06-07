@@ -24,6 +24,7 @@ const servicePriceEl = document.querySelector("#servicePrice");
 const studioFields = document.querySelector("#studioFields");
 const otherAddressWrap = document.querySelector("#otherAddressWrap");
 const otherAreaWrap = document.querySelector("#otherAreaWrap");
+const locationTypeValue = document.querySelector("#locationTypeValue");
 const referenceFilesInput = document.querySelector("#referenceFiles");
 const referenceFileText = document.querySelector("#referenceFileText");
 const referenceFilePicker = document.querySelector(".file-picker");
@@ -613,6 +614,9 @@ function updateLocationFields() {
   const locationType = form.elements.locationType.value;
   const isStudio = locationType === "studio";
   const isOther = locationType === "other";
+  document.querySelectorAll("[data-location-option]").forEach((button) => {
+    button.dataset.active = String(button.dataset.locationOption === locationType);
+  });
   studioFields.classList.toggle("hidden", !isStudio);
   otherAddressWrap.classList.toggle("hidden", !isOther);
   otherAreaWrap.classList.toggle("hidden", !isOther);
@@ -761,8 +765,11 @@ async function loadLastBookingStatus() {
   }
 }
 
-document.querySelectorAll('input[name="locationType"]').forEach((input) => {
-  input.addEventListener("change", updateLocationFields);
+document.querySelectorAll("[data-location-option]").forEach((button) => {
+  button.addEventListener("click", () => {
+    locationTypeValue.value = button.dataset.locationOption;
+    updateLocationFields();
+  });
 });
 
 document.querySelectorAll('input[name="serviceType"]').forEach((input) => {

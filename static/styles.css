@@ -517,13 +517,26 @@ fieldset {
   display: block;
 }
 
+.segmented button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 .segmented input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.segmented span {
+.segmented span,
+.segmented button span {
   display: grid;
   place-items: center;
   min-width: 0;
@@ -543,6 +556,12 @@ fieldset {
 }
 
 .segmented input:checked + span {
+  border-color: var(--gold-dark);
+  background: #fff8ed;
+  color: var(--gold-dark);
+}
+
+.segmented button[data-active="true"] span {
   border-color: var(--gold-dark);
   background: #fff8ed;
   color: var(--gold-dark);

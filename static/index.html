@@ -108,18 +108,16 @@
       <fieldset>
         <legend data-i18n="locationType">Վայրի տեսակ</legend>
         <div class="segmented">
-          <label>
-            <input type="radio" name="locationType" value="studio" checked>
+          <input id="locationTypeValue" type="hidden" name="locationType" value="studio">
+          <button type="button" data-location-option="studio" data-active="true">
             <span data-i18n="studio">Ստուդիա</span>
-          </label>
-          <label>
-            <input type="radio" name="locationType" value="other">
+          </button>
+          <button type="button" data-location-option="other" data-active="false">
             <span data-i18n="otherPlace">Այլ վայր</span>
-          </label>
-          <label>
-            <input type="radio" name="locationType" value="undecided">
+          </button>
+          <button type="button" data-location-option="undecided" data-active="false">
             <span data-i18n="undecided">Դեռ չեմ որոշել</span>
-          </label>
+          </button>
         </div>
       </fieldset>
 
@@ -199,6 +197,6 @@
     </form>
   </main>
 
-  <script src="./app.js?v=20260607-event-photo-types"></script>
+  <script src="./app.js?v=20260607-location-buttons"></script>
 </body>
 </html>
