@@ -260,6 +260,24 @@ h2 {
   letter-spacing: 0;
 }
 
+.time-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 8px;
+}
+
+.symbol-button {
+  min-width: 48px;
+  min-height: 46px;
+  border: 1px solid var(--gold-dark);
+  border-radius: 8px;
+  background: #fff8ed;
+  color: var(--gold-dark);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .preferred-time-options {
   display: flex;
   gap: 8px;

@@ -15,10 +15,12 @@ const bookingDateInput = document.querySelector("#bookingDate");
 const usePreferredTime = document.querySelector("#usePreferredTime");
 const preferredTimeWrap = document.querySelector("#preferredTimeWrap");
 const preferredTimeInput = document.querySelector("#preferredTime");
+const preferredTimeColonButton = document.querySelector("#preferredTimeColonButton");
 const preferredTimeOptions = document.querySelector("#preferredTimeOptions");
 const form = document.querySelector("#bookingForm");
 const statusEl = document.querySelector("#status");
 const selectedSlotText = document.querySelector("#selectedSlotText");
+const peopleCountInput = form.elements.peopleCount;
 const photoTypeSelect = form.elements.photoType;
 const servicePriceEl = document.querySelector("#servicePrice");
 const studioFields = document.querySelector("#studioFields");
@@ -476,6 +478,25 @@ function normalizePreferredTime(value) {
   return value.trim();
 }
 
+function cleanPreferredTimeInput() {
+  preferredTimeInput.value = preferredTimeInput.value.replace(/[^\d:]/g, "").slice(0, 5);
+}
+
+function insertPreferredTimeColon() {
+  const start = preferredTimeInput.selectionStart ?? preferredTimeInput.value.length;
+  const end = preferredTimeInput.selectionEnd ?? preferredTimeInput.value.length;
+  preferredTimeInput.value = `${preferredTimeInput.value.slice(0, start)}:${preferredTimeInput.value.slice(end)}`.slice(0, 5);
+  cleanPreferredTimeInput();
+  preferredTimeInput.focus();
+  const position = Math.min(start + 1, preferredTimeInput.value.length);
+  preferredTimeInput.setSelectionRange(position, position);
+}
+
+function cleanPeopleCountInput() {
+  peopleCountInput.value = peopleCountInput.value.replace(/\D/g, "").slice(0, 2);
+  if (Number(peopleCountInput.value) > 50) peopleCountInput.value = "50";
+}
+
 function isValidPreferredTime(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
@@ -767,6 +788,15 @@ bookingDateInput.addEventListener("change", () => {
 
 usePreferredTime.addEventListener("change", updatePreferredTimeMode);
 
+preferredTimeColonButton.addEventListener("click", insertPreferredTimeColon);
+
+preferredTimeInput.addEventListener("input", () => {
+  cleanPreferredTimeInput();
+  if (bookingDateInput.value) {
+    selectedSlotText.value = `${bookingDateInput.value} ${preferredTimeInput.value}`;
+  }
+});
+
 preferredTimeInput.addEventListener("change", () => {
   syncPreferredTime();
   renderPreferredTimeOptions();
@@ -775,6 +805,12 @@ preferredTimeInput.addEventListener("change", () => {
 preferredTimeInput.addEventListener("blur", () => {
   syncPreferredTime();
   renderPreferredTimeOptions();
+});
+
+peopleCountInput.addEventListener("input", cleanPeopleCountInput);
+peopleCountInput.addEventListener("blur", () => {
+  cleanPeopleCountInput();
+  if (!peopleCountInput.value) peopleCountInput.value = "1";
 });
 
 form.addEventListener("submit", submitBooking);
