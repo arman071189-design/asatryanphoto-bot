@@ -70,7 +70,7 @@ fieldset,
 label,
 .segmented,
 .price-preview,
-.file-picker,
+.media-note,
 .section-head {
   min-width: 0;
   max-width: 100%;
@@ -403,6 +403,27 @@ input[type="file"] {
   color: var(--muted);
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.media-note {
+  display: grid;
+  gap: 6px;
+  border: 1px dashed var(--gold-dark);
+  border-radius: 8px;
+  background: #fff8ed;
+  color: var(--ink);
+  padding: 12px;
+}
+
+.media-note strong,
+.media-note small {
+  display: block;
+}
+
+.media-note small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .file-input:focus + .file-picker {

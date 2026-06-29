@@ -25,12 +25,6 @@ const studioFields = document.querySelector("#studioFields");
 const otherAddressWrap = document.querySelector("#otherAddressWrap");
 const otherAreaWrap = document.querySelector("#otherAreaWrap");
 const locationTypeValue = document.querySelector("#locationTypeValue");
-const referenceFilesInput = document.querySelector("#referenceFiles");
-const referenceFileText = document.querySelector("#referenceFileText");
-const referenceFilePicker = document.querySelector(".file-picker");
-const desktopReferenceGuide = document.querySelector("#desktopReferenceGuide");
-const desktopGuideStatus = document.querySelector("#desktopGuideStatus");
-const closeToChat = document.querySelector("#closeToChat");
 const serviceDescriptionEl = document.querySelector("#serviceDescription");
 const bookingStatusPanel = document.querySelector("#bookingStatusPanel");
 const bookingStatusText = document.querySelector("#bookingStatusText");
@@ -45,10 +39,6 @@ const priceUnitLabels = {
   ru: "1 \u0447\u0430\u0441",
   en: "1 hour",
 };
-const telegramPlatform = tg?.platform || "";
-const isTelegramDesktop = ["tdesktop", "weba", "webk", "macos"].includes(telegramPlatform);
-document.body.dataset.telegramDesktop = String(isTelegramDesktop);
-
 function lockHorizontalScroll() {
   document.documentElement.scrollLeft = 0;
   document.body.scrollLeft = 0;
@@ -170,16 +160,8 @@ const t = {
     selectedTime: "Ընտրված ժամ",
     notes: "Լրացուցիչ նշումներ",
     references: "Ցանկալի նկարների / ռիլի օրինակներ",
-    attachExamples: "Կցել օրինակներ",
+    postBookingMediaNote: "Գրանցվելուց հետո կարող եք Telegram chat-ում ուղարկել ձեր ցանկալի նկարները կամ վիդեոները՝ ֆոտոգրաֆի հետ քննարկելու համար։",
     sendRequest: "Ուղարկել հարցումը",
-    noFiles: "Ֆայլ ընտրված չէ",
-    filesSelected: (count) => `${count} ֆայլ ընտրված է`,
-    desktopFilesUnsupported: "Կոմպով նկարները ուղարկեք հենց այս բոտի chat-ում՝ ամրագրումից հետո։",
-    desktopGuideTitle: "Նկարները ուղարկեք chat-ում",
-    desktopGuideHint: "Կարող եք ուղարկել մեկ նկար, մի քանի նկար կամ ալբոմ։ Բոտը ավտոմատ կկապի դրանք ձեր վերջին ամրագրմանը և կուղարկի admin-ին։",
-    desktopStatusBefore: "Սկզբում ուղարկեք ամրագրման հարցումը, հետո նկարները ուղարկեք բոտի chat-ում։",
-    desktopStatusAfter: "Ամրագրումը ստացվել է։ Փակեք Mini App-ը և նկարները ուղարկեք այս բոտի chat-ում։",
-    desktopCloseToChat: "Փակել և ուղարկել նկարները",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
     noSlotsForDay: "Ընտրած օրվա համար ազատ ժամեր չկան։",
     freeDays: (count) => `${count} ազատ օր`,
@@ -230,16 +212,8 @@ const t = {
     selectedTime: "Выбранное время",
     notes: "Дополнительные заметки",
     references: "Примеры желаемых фото / reel",
-    attachExamples: "Прикрепить примеры",
+    postBookingMediaNote: "После регистрации отправьте желаемые фото или видео в Telegram-чат, чтобы обсудить их с фотографом.",
     sendRequest: "Отправить заявку",
-    noFiles: "Файл не выбран",
-    filesSelected: (count) => `Выбрано файлов: ${count}`,
-    desktopFilesUnsupported: "На компьютере отправьте фото прямо в чат этого бота после заявки.",
-    desktopGuideTitle: "Отправьте фото в чат",
-    desktopGuideHint: "Можно отправить одно фото, несколько фото или альбом. Бот автоматически привяжет их к вашей последней заявке и отправит администратору.",
-    desktopStatusBefore: "Сначала отправьте заявку, затем отправьте фото в чат бота.",
-    desktopStatusAfter: "Заявка получена. Закройте Mini App и отправьте фото в чат этого бота.",
-    desktopCloseToChat: "Закрыть и отправить фото",
     noSlots: "Сейчас нет свободного времени.",
     noSlotsForDay: "В выбранный день нет свободного времени.",
     freeDays: (count) => `Свободных дней: ${count}`,
@@ -290,16 +264,8 @@ const t = {
     selectedTime: "Selected time",
     notes: "Additional notes",
     references: "Reference photos / reel examples",
-    attachExamples: "Attach examples",
+    postBookingMediaNote: "After registration, send your preferred photos or videos in the Telegram chat to discuss them with the photographer.",
     sendRequest: "Send request",
-    noFiles: "No file selected",
-    filesSelected: (count) => `${count} file(s) selected`,
-    desktopFilesUnsupported: "On desktop, send photos directly in this bot chat after booking.",
-    desktopGuideTitle: "Send photos in chat",
-    desktopGuideHint: "You can send one photo, multiple photos, or an album. The bot will attach them to your latest booking and forward them to admin.",
-    desktopStatusBefore: "Send the booking request first, then send photos in the bot chat.",
-    desktopStatusAfter: "Booking received. Close the Mini App and send photos in this bot chat.",
-    desktopCloseToChat: "Close and send photos",
     noSlots: "There are no available times right now.",
     noSlotsForDay: "There are no available times for this day.",
     freeDays: (count) => `${count} available day(s)`,
@@ -332,17 +298,6 @@ function setStatus(message, type = "") {
   statusEl.dataset.type = type;
 }
 
-function updateDesktopReferenceGuide() {
-  if (!isTelegramDesktop) {
-    desktopReferenceGuide.classList.add("hidden");
-    return;
-  }
-  desktopReferenceGuide.classList.remove("hidden");
-  const bookingId = localStorage.getItem("lastBookingId") || "";
-  desktopGuideStatus.textContent = bookingId ? t[currentLang].desktopStatusAfter : t[currentLang].desktopStatusBefore;
-  referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
-}
-
 function applyLanguage() {
   if (!t[currentLang]) currentLang = "hy";
   document.documentElement.lang = currentLang;
@@ -352,12 +307,6 @@ function applyLanguage() {
   document.querySelectorAll("[data-lang]").forEach((button) => {
     button.dataset.active = String(button.dataset.lang === currentLang);
   });
-  referenceFileText.textContent = referenceFilesInput.files.length
-    ? t[currentLang].filesSelected(referenceFilesInput.files.length)
-    : isTelegramDesktop
-      ? t[currentLang].desktopFilesUnsupported
-      : t[currentLang].noFiles;
-  updateDesktopReferenceGuide();
   if (state.photoTypes.length) renderPhotoTypes(state.photoTypes);
   renderSlots();
   updateServicePrice();
@@ -659,9 +608,6 @@ function collectBookingFormData() {
     data.append(key, value ?? "");
   });
 
-  Array.from(form.elements.references.files || []).slice(0, 10).forEach((file) => {
-    data.append("references", file);
-  });
   return data;
 }
 
@@ -701,7 +647,6 @@ async function submitBooking(event) {
     }
 
     localStorage.setItem("lastBookingId", data.booking.id);
-    updateDesktopReferenceGuide();
     renderLastBookingStatus(data.booking);
     setStatus(t[currentLang].sent, "success");
     tg?.HapticFeedback?.notificationOccurred("success");
@@ -781,40 +726,6 @@ document.querySelectorAll('input[name="serviceType"]').forEach((input) => {
 
 document.querySelectorAll('input[name="otherArea"]').forEach((input) => {
   input.addEventListener("change", updateServicePrice);
-});
-
-referenceFilesInput.addEventListener("change", () => {
-  const count = referenceFilesInput.files.length;
-  referenceFileText.textContent = count ? t[currentLang].filesSelected(count) : t[currentLang].noFiles;
-});
-
-referenceFilePicker.addEventListener("click", () => {
-  if (isTelegramDesktop) {
-    referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
-    setStatus(t[currentLang].desktopFilesUnsupported, "");
-    return;
-  }
-  referenceFilesInput.click();
-});
-
-referenceFilePicker.addEventListener("keydown", (event) => {
-  if (event.key !== "Enter" && event.key !== " ") return;
-  event.preventDefault();
-  if (isTelegramDesktop) {
-    referenceFileText.textContent = t[currentLang].desktopFilesUnsupported;
-    setStatus(t[currentLang].desktopFilesUnsupported, "");
-    return;
-  }
-  referenceFilesInput.click();
-});
-
-if (isTelegramDesktop) {
-  updateDesktopReferenceGuide();
-}
-
-closeToChat.addEventListener("click", () => {
-  setStatus(t[currentLang].desktopFilesUnsupported, "");
-  tg?.close();
 });
 
 document.querySelectorAll("[data-lang]").forEach((button) => {

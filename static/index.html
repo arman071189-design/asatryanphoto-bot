@@ -167,36 +167,16 @@
         <textarea name="notes" rows="3"></textarea>
       </label>
 
-      <label>
-        <span data-i18n="references">Ցանկալի նկարների / ռիլի օրինակներ</span>
-        <input id="referenceFiles" class="file-input" type="file" name="references" accept="image/*" multiple>
-        <span class="file-picker" role="button" tabindex="0">
-          <span class="file-picker-icon">+</span>
-          <span>
-            <strong data-i18n="attachExamples">Կցել օրինակներ</strong>
-            <small id="referenceFileText">Ֆայլ ընտրված չէ</small>
-          </span>
-        </span>
-        <div id="desktopReferenceGuide" class="desktop-reference-guide hidden">
-          <div class="desktop-guide-head">
-            <span class="desktop-guide-icon" aria-hidden="true">→</span>
-            <span>
-              <strong data-i18n="desktopGuideTitle">Կոմպով նկարներ ուղարկելու ձևը</strong>
-              <small id="desktopGuideStatus"></small>
-            </span>
-          </div>
-          <small data-i18n="desktopGuideHint">Բոտը նկարները ավտոմատ կկապի ձեր վերջին ամրագրմանը և կուղարկի admin-ին։</small>
-          <div class="desktop-reference-actions">
-            <button id="closeToChat" type="button" data-i18n="desktopCloseToChat">Փակել Mini App-ը</button>
-          </div>
-        </div>
-      </label>
+      <div class="media-note">
+        <strong data-i18n="references">Ցանկալի նկարների / ռիլի օրինակներ</strong>
+        <small data-i18n="postBookingMediaNote">Գրանցվելուց հետո կարող եք Telegram chat-ում ուղարկել ձեր ցանկալի նկարները կամ վիդեոները՝ ֆոտոգրաֆի հետ քննարկելու համար։</small>
+      </div>
 
       <button id="submitButton" class="submit" type="submit" data-i18n="sendRequest">Ուղարկել հարցումը</button>
       <p id="status" class="status" role="status"></p>
     </form>
   </main>
 
-  <script src="./app.js?v=20260607-location-buttons"></script>
+  <script src="./app.js?v=20260629-media-note"></script>
 </body>
 </html>
