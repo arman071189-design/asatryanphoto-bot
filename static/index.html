@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AsatryanPhoto</title>
-  <link rel="stylesheet" href="./styles.css?v=20260629-keyboards">
+  <link rel="stylesheet" href="./styles.css?v=20260630-mobile-media">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -170,7 +170,19 @@
         <textarea name="notes" rows="3"></textarea>
       </label>
 
-      <div class="media-note">
+      <label class="reference-upload mobile-reference-upload">
+        <span data-i18n="references">Ցանկալի նկարների / ռիլի օրինակներ</span>
+        <input id="referenceFiles" class="file-input" type="file" name="references" accept="image/*,video/*" multiple>
+        <span class="file-picker" role="button" tabindex="0">
+          <span class="file-picker-icon">+</span>
+          <span>
+            <strong data-i18n="attachExamples">Կցել օրինակներ</strong>
+            <small id="referenceFileText" data-i18n="noFiles">Ֆայլ ընտրված չէ</small>
+          </span>
+        </span>
+      </label>
+
+      <div class="media-note desktop-reference-note">
         <strong data-i18n="references">Ցանկալի նկարների / ռիլի օրինակներ</strong>
         <small data-i18n="postBookingMediaNote">Գրանցվելուց հետո կարող եք Telegram chat-ում ուղարկել ձեր ցանկալի նկարները կամ վիդեոները՝ ֆոտոգրաֆի հետ քննարկելու համար։</small>
       </div>
@@ -180,6 +192,6 @@
     </form>
   </main>
 
-  <script src="./app.js?v=20260629-keyboards"></script>
+  <script src="./app.js?v=20260630-mobile-media"></script>
 </body>
 </html>

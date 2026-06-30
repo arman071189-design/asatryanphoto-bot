@@ -460,6 +460,14 @@ body[data-telegram-desktop="true"] .file-picker {
   display: none;
 }
 
+body[data-telegram-desktop="true"] .mobile-reference-upload {
+  display: none;
+}
+
+body:not([data-telegram-desktop="true"]) .desktop-reference-note {
+  display: none;
+}
+
 .desktop-reference-guide {
   display: grid;
   gap: 12px;

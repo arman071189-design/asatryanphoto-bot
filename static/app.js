@@ -27,6 +27,9 @@ const studioFields = document.querySelector("#studioFields");
 const otherAddressWrap = document.querySelector("#otherAddressWrap");
 const otherAreaWrap = document.querySelector("#otherAreaWrap");
 const locationTypeValue = document.querySelector("#locationTypeValue");
+const referenceFilesInput = document.querySelector("#referenceFiles");
+const referenceFileText = document.querySelector("#referenceFileText");
+const referenceFilePicker = document.querySelector(".file-picker");
 const serviceDescriptionEl = document.querySelector("#serviceDescription");
 const bookingStatusPanel = document.querySelector("#bookingStatusPanel");
 const bookingStatusText = document.querySelector("#bookingStatusText");
@@ -41,6 +44,9 @@ const priceUnitLabels = {
   ru: "1 \u0447\u0430\u0441",
   en: "1 hour",
 };
+const telegramPlatform = tg?.platform || "";
+const isTelegramDesktop = !tg || ["tdesktop", "weba", "webk", "macos"].includes(telegramPlatform);
+document.body.dataset.telegramDesktop = String(isTelegramDesktop);
 function lockHorizontalScroll() {
   document.documentElement.scrollLeft = 0;
   document.body.scrollLeft = 0;
@@ -162,6 +168,9 @@ const t = {
     selectedTime: "Ընտրված ժամ",
     notes: "Լրացուցիչ նշումներ",
     references: "Ցանկալի նկարների / ռիլի օրինակներ",
+    attachExamples: "Կցել օրինակներ",
+    noFiles: "Ֆայլ ընտրված չէ",
+    filesSelected: (count) => `${count} ֆայլ ընտրված է`,
     postBookingMediaNote: "Գրանցվելուց հետո կարող եք Telegram chat-ում ուղարկել ձեր ցանկալի նկարները կամ վիդեոները՝ ֆոտոգրաֆի հետ քննարկելու համար։",
     sendRequest: "Ուղարկել հարցումը",
     noSlots: "Այս պահին ազատ ժամեր չկան։",
@@ -214,6 +223,9 @@ const t = {
     selectedTime: "Выбранное время",
     notes: "Дополнительные заметки",
     references: "Примеры желаемых фото / reel",
+    attachExamples: "Прикрепить примеры",
+    noFiles: "Файл не выбран",
+    filesSelected: (count) => `Выбрано файлов: ${count}`,
     postBookingMediaNote: "После регистрации отправьте желаемые фото или видео в Telegram-чат, чтобы обсудить их с фотографом.",
     sendRequest: "Отправить заявку",
     noSlots: "Сейчас нет свободного времени.",
@@ -266,6 +278,9 @@ const t = {
     selectedTime: "Selected time",
     notes: "Additional notes",
     references: "Reference photos / reel examples",
+    attachExamples: "Attach examples",
+    noFiles: "No file selected",
+    filesSelected: (count) => `${count} file(s) selected`,
     postBookingMediaNote: "After registration, send your preferred photos or videos in the Telegram chat to discuss them with the photographer.",
     sendRequest: "Send request",
     noSlots: "There are no available times right now.",
@@ -309,6 +324,11 @@ function applyLanguage() {
   document.querySelectorAll("[data-lang]").forEach((button) => {
     button.dataset.active = String(button.dataset.lang === currentLang);
   });
+  if (referenceFileText) {
+    referenceFileText.textContent = referenceFilesInput.files.length
+      ? t[currentLang].filesSelected(referenceFilesInput.files.length)
+      : t[currentLang].noFiles;
+  }
   if (state.photoTypes.length) renderPhotoTypes(state.photoTypes);
   renderSlots();
   updateServicePrice();
@@ -629,6 +649,12 @@ function collectBookingFormData() {
     data.append(key, value ?? "");
   });
 
+  if (!isTelegramDesktop && referenceFilesInput) {
+    Array.from(referenceFilesInput.files || []).slice(0, 10).forEach((file) => {
+      data.append("references", file);
+    });
+  }
+
   return data;
 }
 
@@ -747,6 +773,22 @@ document.querySelectorAll('input[name="serviceType"]').forEach((input) => {
 
 document.querySelectorAll('input[name="otherArea"]').forEach((input) => {
   input.addEventListener("change", updateServicePrice);
+});
+
+referenceFilesInput?.addEventListener("change", () => {
+  const count = referenceFilesInput.files.length;
+  referenceFileText.textContent = count ? t[currentLang].filesSelected(count) : t[currentLang].noFiles;
+});
+
+referenceFilePicker?.addEventListener("click", (event) => {
+  event.preventDefault();
+  referenceFilesInput?.click();
+});
+
+referenceFilePicker?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  referenceFilesInput?.click();
 });
 
 document.querySelectorAll("[data-lang]").forEach((button) => {
