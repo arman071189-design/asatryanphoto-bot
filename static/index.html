@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AsatryanPhoto</title>
-  <link rel="stylesheet" href="./styles.css?v=20260630-mobile-media">
+  <link rel="stylesheet" href="./styles.css?v=20260630-time-tel-keyboard">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -53,7 +53,7 @@
       <label id="preferredTimeWrap" class="hidden calendar-field">
         <span data-i18n="preferredTime">Ցանկալի ժամ</span>
         <div class="time-control">
-          <input id="preferredTime" name="preferredTime" type="text" inputmode="decimal" autocomplete="off" placeholder="16:00" maxlength="5" pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$">
+          <input id="preferredTime" name="preferredTime" type="tel" inputmode="tel" autocomplete="off" placeholder="16:00" maxlength="5" pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$">
           <button id="preferredTimeColonButton" class="symbol-button" type="button" aria-label="Ավելացնել երկու կետ">:</button>
         </div>
         <div id="preferredTimeOptions" class="preferred-time-options" aria-label="Preferred time options"></div>
@@ -192,6 +192,6 @@
     </form>
   </main>
 
-  <script src="./app.js?v=20260630-mobile-media"></script>
+  <script src="./app.js?v=20260630-time-tel-keyboard"></script>
 </body>
 </html>
