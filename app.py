@@ -99,15 +99,43 @@ DEFAULT_SERVICE_PRICES = {
 }
 
 
+def today_text() -> str:
+    return datetime.now(APP_TIMEZONE).date().isoformat()
+
+
+def future_date_text(days: int) -> str:
+    return (datetime.now(APP_TIMEZONE).date() + timedelta(days=days)).isoformat()
+
+
+def normalize_work_settings_date_range(settings: dict) -> bool:
+    try:
+        today = datetime.now(APP_TIMEZONE).date()
+        days_ahead = int(settings.get("bookingDaysAhead", 60) or 60)
+        date_to = datetime.strptime(str(settings.get("dateTo", "")), "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        settings["dateFrom"] = today_text()
+        settings["dateTo"] = future_date_text(60)
+        return True
+
+    if date_to >= today:
+        return False
+
+    settings["dateFrom"] = today.isoformat()
+    settings["dateTo"] = (today + timedelta(days=max(days_ahead, 1))).isoformat()
+    return True
+
+
 def ensure_db() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not DB_PATH.exists():
+        work_settings = DEFAULT_WORK_SETTINGS.copy()
+        normalize_work_settings_date_range(work_settings)
         save_db(
             {
                 "availability": DEFAULT_AVAILABILITY,
                 "bookings": [],
                 "servicePrices": DEFAULT_SERVICE_PRICES,
-                "workSettings": DEFAULT_WORK_SETTINGS,
+                "workSettings": work_settings,
                 "busySlots": [],
                 "nonWorkingDays": [],
             }
@@ -132,6 +160,8 @@ def ensure_db() -> None:
             if key not in data["workSettings"]:
                 data["workSettings"][key] = value
                 changed = True
+    if normalize_work_settings_date_range(data["workSettings"]):
+        changed = True
     if "busySlots" not in data:
         data["busySlots"] = []
         changed = True
@@ -897,7 +927,9 @@ def generate_work_slots(db: dict) -> list[dict]:
         if settings.get("dateFrom"):
             current_day = max(current_day, datetime.strptime(settings["dateFrom"], "%Y-%m-%d").date())
         if settings.get("dateTo"):
-            end_day = min(end_day, datetime.strptime(settings["dateTo"], "%Y-%m-%d").date())
+            configured_end_day = datetime.strptime(settings["dateTo"], "%Y-%m-%d").date()
+            if configured_end_day >= current_day:
+                end_day = min(end_day, configured_end_day)
         start_minutes = parse_minutes(settings["startTime"])
         end_minutes = parse_minutes(settings["endTime"])
         step = int(settings.get("slotMinutes", 60))
