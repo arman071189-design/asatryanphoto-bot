@@ -684,8 +684,13 @@ fieldset {
 }
 
 .empty {
+  grid-column: 1 / -1;
   margin: 0;
   color: var(--muted);
+  width: 100%;
+  max-width: 100%;
+  line-height: 1.45;
+  overflow-wrap: normal;
 }
 
 .price-form {
