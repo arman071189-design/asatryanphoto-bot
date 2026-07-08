@@ -184,6 +184,8 @@ def reminder_loop():
 
 
 class Handler(SimpleHTTPRequestHandler):
+    server_version = "BeautySalonMiniApp/1.1"
+
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
         clean_path = parsed.path
@@ -200,9 +202,14 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("X-Beauty-Salon-App", "1")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def end_headers(self):
+        self.send_header("X-Beauty-Salon-App", "1")
+        super().end_headers()
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -212,10 +219,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path.startswith("/health"):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        if path.startswith("/health"):
             return self.send_json(200, {"ok": True})
-        if self.path.startswith("/api/bookings"):
+        if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
+        if path == "/" or path == "/app":
+            self.send_response(302)
+            self.send_header("Location", "/app/")
+            self.end_headers()
+            return
+        if not path.startswith("/app/"):
+            self.path = "/app/"
         return super().do_GET()
 
     def do_POST(self):
