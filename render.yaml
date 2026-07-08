@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: beauty-salon-mini-app
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /health
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEB_APP_URL
+        value: https://beauty-salon-mini-app.onrender.com/app/
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: DATA_DIR
+        value: /tmp/beauty-salon-data

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="hy">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Beauty Salon Mini App</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Beauty Studio</p>
+          <h1>Ամրագրում</h1>
+        </div>
+        <button class="icon-button" id="adminOpen" aria-label="Admin panel" title="Admin panel">
+          <span>⚙</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p>Ընտրեք ծառայությունը, մասնագետին ու հարմար ժամը։</p>
+            <button class="primary" id="startBooking">Սկսել ամրագրումը</button>
+          </div>
+        </section>
+
+        <nav class="steps" aria-label="Booking steps">
+          <button class="step is-active" data-view="services">1. Ծառայություն</button>
+          <button class="step" data-view="specialists">2. Մասնագետ</button>
+          <button class="step" data-view="time">3. Ժամ</button>
+          <button class="step" data-view="summary">4. Հաստատում</button>
+        </nav>
+
+        <section class="view is-visible" id="servicesView">
+          <div class="section-head">
+            <h2>Ծառայություններ</h2>
+            <span id="servicesCount"></span>
+          </div>
+          <div class="service-grid" id="servicesList"></div>
+        </section>
+
+        <section class="view" id="specialistsView">
+          <div class="section-head">
+            <h2>Մասնագետներ</h2>
+            <button class="ghost" data-back="services">Փոխել ծառայությունը</button>
+          </div>
+          <div class="specialist-list" id="specialistsList"></div>
+        </section>
+
+        <section class="view" id="timeView">
+          <div class="section-head">
+            <h2>Ժամի ընտրություն</h2>
+            <button class="ghost" data-back="specialists">Փոխել մասնագետին</button>
+          </div>
+          <div class="booking-panel">
+            <label>
+              Ամսաթիվ
+              <input type="date" id="bookingDate" />
+            </label>
+            <div>
+              <p class="field-label">Հասանելի ժամեր</p>
+              <div class="slot-grid" id="slotList"></div>
+            </div>
+            <label class="toggle-row">
+              <input type="checkbox" id="reminderToggle" checked />
+              <span>Հիշեցնել այցից 2 ժամ առաջ</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="view" id="summaryView">
+          <div class="section-head">
+            <h2>Ամրագրում</h2>
+            <button class="ghost" data-back="time">Փոխել ժամը</button>
+          </div>
+          <div class="summary-card" id="summaryCard"></div>
+          <button class="primary full" id="confirmBooking">Հաստատել ամրագրումը</button>
+        </section>
+
+        <section class="bookings">
+          <div class="section-head">
+            <h2>Իմ ամրագրումները</h2>
+            <button class="ghost" id="clearPast">Մաքրել անցածները</button>
+          </div>
+          <div id="bookingsList" class="booking-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="adminDialog" class="admin-dialog">
+      <form method="dialog" class="admin-card">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h2>Կառավարման վահանակ</h2>
+          </div>
+          <button class="icon-button" value="close" aria-label="Close">×</button>
+        </div>
+
+        <div id="pinGate" class="pin-gate">
+          <label>
+            Մուտքագրեք PIN
+            <input type="password" id="adminPin" inputmode="numeric" placeholder="2026" />
+          </label>
+          <button type="button" class="primary" id="unlockAdmin">Մուտք</button>
+          <p class="hint">Demo PIN՝ 2026</p>
+        </div>
+
+        <div id="adminPanel" class="admin-panel">
+          <div class="stats" id="adminStats"></div>
+
+          <div class="admin-section">
+            <h3>Ծառայություններ</h3>
+            <div class="inline-form">
+              <input id="newServiceName" placeholder="Անուն" />
+              <input id="newServicePrice" type="number" min="0" placeholder="Գին" />
+              <input id="newServiceDuration" type="number" min="15" step="15" placeholder="Րոպե" />
+              <button type="button" class="primary" id="addService">Ավելացնել</button>
+            </div>
+            <div id="adminServices" class="admin-list"></div>
+          </div>
+
+          <div class="admin-section">
+            <h3>Մասնագետներ</h3>
+            <div class="inline-form">
+              <input id="newSpecialistName" placeholder="Անուն" />
+              <input id="newSpecialistRole" placeholder="Ոլորտ" />
+              <button type="button" class="primary" id="addSpecialist">Ավելացնել</button>
+            </div>
+            <div id="adminSpecialists" class="admin-list"></div>
+          </div>
+
+          <div class="admin-section">
+            <h3>Ամրագրումներ</h3>
+            <div id="adminBookings" class="admin-list"></div>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
