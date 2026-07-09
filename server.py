@@ -31,6 +31,7 @@ ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "").strip()
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://localhost:8000/app/").strip()
 PORT = int(os.environ.get("PORT", "8000"))
 API_BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
+APP_VERSION = "20260709-premium2"
 DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATA_FILE = DATA_DIR / "bookings.json"
@@ -93,9 +94,16 @@ def answer_callback(callback_id, text=""):
 def web_app_keyboard():
     return {
         "inline_keyboard": [
-            [{"text": "Բացել Beauty Studio Mini App-ը", "web_app": {"url": WEB_APP_URL}}],
+            [{"text": "Բացել Beauty Studio Mini App-ը", "web_app": {"url": web_app_url()}}],
         ]
     }
+
+
+def web_app_url():
+    separator = "&" if "?" in WEB_APP_URL else "?"
+    if "v=" in WEB_APP_URL:
+        return WEB_APP_URL
+    return f"{WEB_APP_URL}{separator}v={APP_VERSION}"
 
 
 def admin_booking_keyboard(booking_id):
@@ -105,7 +113,7 @@ def admin_booking_keyboard(booking_id):
                 {"text": "Հաստատել", "callback_data": f"booking:confirmed:{booking_id}"},
                 {"text": "Չեղարկել", "callback_data": f"booking:cancelled:{booking_id}"},
             ],
-            [{"text": "Բացել Mini App-ը", "web_app": {"url": WEB_APP_URL}}],
+            [{"text": "Բացել Mini App-ը", "web_app": {"url": web_app_url()}}],
         ]
     }
 
@@ -243,7 +251,7 @@ def reminder_loop():
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "BeautySalonMiniApp/1.2"
+    server_version = "BeautySalonMiniApp/1.3"
 
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -269,6 +277,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("X-Beauty-Salon-App", "1")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         super().end_headers()
 
     def read_body(self):
@@ -287,7 +298,7 @@ class Handler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         if path.startswith("/health"):
-            return self.send_json(200, {"ok": True, "version": "1.2"})
+            return self.send_json(200, {"ok": True, "version": "1.3", "appVersion": APP_VERSION})
         if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
         if path.startswith("/api/catalog"):
