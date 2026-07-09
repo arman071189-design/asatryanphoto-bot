@@ -31,7 +31,7 @@ ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "").strip()
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://localhost:8000/app/").strip()
 PORT = int(os.environ.get("PORT", "8000"))
 API_BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
-APP_VERSION = "20260709-premium2"
+APP_VERSION = "20260709-flow3"
 DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATA_FILE = DATA_DIR / "bookings.json"
@@ -121,7 +121,7 @@ def admin_booking_keyboard(booking_id):
 def booking_text(booking):
     vip = "VIP հաճախորդ\n" if booking.get("vip") else ""
     loyalty = f"Loyalty՝ {booking.get('loyaltyLevel', 'Standard')}\n"
-    contact = f"Հաճախորդ՝ {booking.get('clientName', '-')}, {booking.get('clientPhone', '-')}\n"
+    contact = f"Հաճախորդ՝ {booking.get('clientName', '-')} {booking.get('clientSurname', '')}, {booking.get('clientPhone', '-')}\n"
     return (
         f"Նոր ամրագրում ({STATUS_LABELS.get(booking.get('status'), booking.get('status'))})\n"
         f"{vip}{loyalty}{contact}"
@@ -251,7 +251,7 @@ def reminder_loop():
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "BeautySalonMiniApp/1.3"
+    server_version = "BeautySalonMiniApp/1.4"
 
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -298,7 +298,7 @@ class Handler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         if path.startswith("/health"):
-            return self.send_json(200, {"ok": True, "version": "1.3", "appVersion": APP_VERSION})
+            return self.send_json(200, {"ok": True, "version": "1.4", "appVersion": APP_VERSION})
         if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
         if path.startswith("/api/catalog"):

@@ -29,12 +29,13 @@ const i18n = {
     date: "Ամսաթիվ",
     availableTimes: "Հասանելի ժամեր",
     clientName: "Անուն",
+    clientSurname: "Ազգանուն",
     clientPhone: "Հեռախոս",
     vipClient: "VIP / loyalty հաճախորդ",
     reminder: "Հիշեցնել այցից 24 ժամ և 2 ժամ առաջ",
     summary: "Ամրագրում",
     changeTime: "Փոխել ժամը",
-    confirm: "Ուղարկել հաստատման",
+    confirm: "Գրանցվել",
     portfolio: "Portfolio",
     giftCards: "Gift cards",
     giftTitle: "Beauty certificate",
@@ -85,12 +86,13 @@ const i18n = {
     date: "Дата",
     availableTimes: "Доступное время",
     clientName: "Имя",
+    clientSurname: "Фамилия",
     clientPhone: "Телефон",
     vipClient: "VIP / loyalty клиент",
     reminder: "Напомнить за 24 часа и за 2 часа",
     summary: "Запись",
     changeTime: "Изменить время",
-    confirm: "Отправить на подтверждение",
+    confirm: "Записаться",
     portfolio: "Портфолио",
     giftCards: "Подарочные карты",
     giftTitle: "Beauty certificate",
@@ -141,12 +143,13 @@ const i18n = {
     date: "Date",
     availableTimes: "Available times",
     clientName: "Name",
+    clientSurname: "Surname",
     clientPhone: "Phone",
     vipClient: "VIP / loyalty client",
     reminder: "Remind 24 hours and 2 hours before",
     summary: "Booking",
     changeTime: "Change time",
-    confirm: "Send for confirmation",
+    confirm: "Book now",
     portfolio: "Portfolio",
     giftCards: "Gift cards",
     giftTitle: "Beauty certificate",
@@ -388,6 +391,7 @@ function renderSlots() {
 }
 
 function renderSummary() {
+  if (!$("#summaryCard")) return;
   const service = selectedService();
   const specialist = selectedSpecialist();
   $("#summaryCard").innerHTML = `
@@ -396,6 +400,7 @@ function renderSummary() {
     <div class="summary-row"><span>${t("date")}</span><strong>${state.selection.date || "-"}</strong></div>
     <div class="summary-row"><span>${t("stepTime").replace("3. ", "")}</span><strong>${state.selection.time || "-"}</strong></div>
     <div class="summary-row"><span>${t("clientName")}</span><strong>${$("#clientName").value || "-"}</strong></div>
+    <div class="summary-row"><span>${t("clientSurname")}</span><strong>${$("#clientSurname").value || "-"}</strong></div>
     <div class="summary-row"><span>${t("clientPhone")}</span><strong>${$("#clientPhone").value || "-"}</strong></div>
     <div class="summary-row"><span>VIP</span><strong>${state.selection.vip ? "VIP" : "Standard"}</strong></div>
     <div class="summary-row"><span>Գին</span><strong>${service ? money(service.price) : "-"}</strong></div>
@@ -447,7 +452,7 @@ function renderAdmin() {
   $("#adminBookings").innerHTML = state.bookings.length
     ? state.bookings.map((booking) => `
       <div class="admin-row booking-admin-row">
-        <span><strong>${booking.serviceName}</strong><br><span class="meta">${booking.clientName || "-"} · ${booking.clientPhone || "-"} · ${booking.specialistName} · ${booking.date} ${booking.time}</span></span>
+        <span><strong>${booking.serviceName}</strong><br><span class="meta">${booking.clientName || "-"} ${booking.clientSurname || ""} · ${booking.clientPhone || "-"} · ${booking.specialistName} · ${booking.date} ${booking.time}</span></span>
         ${statusBadge(booking.status || "pending")}
         <div class="status-actions">
           ${statusOrder.map((status) => `<button type="button" class="ghost" data-status="${status}" data-booking="${booking.id}">${t(status)}</button>`).join("")}
@@ -492,8 +497,9 @@ async function confirmBooking() {
   const service = selectedService();
   const specialist = selectedSpecialist();
   const clientName = $("#clientName").value.trim();
+  const clientSurname = $("#clientSurname").value.trim();
   const clientPhone = $("#clientPhone").value.trim();
-  if (!service || !specialist || !state.selection.date || !state.selection.time || !clientName || !clientPhone) {
+  if (!service || !specialist || !state.selection.date || !state.selection.time || !clientName || !clientSurname || !clientPhone) {
     showToast(t("fillAll"));
     return;
   }
@@ -505,6 +511,7 @@ async function confirmBooking() {
     specialistId: specialist.id,
     specialistName: specialist.name,
     clientName,
+    clientSurname,
     clientPhone,
     date: state.selection.date,
     time: state.selection.time,
@@ -528,6 +535,9 @@ async function confirmBooking() {
 
   save(storageKeys.bookings, state.bookings);
   state.selection.time = null;
+  $("#clientName").value = "";
+  $("#clientSurname").value = "";
+  $("#clientPhone").value = "";
   rerenderAll();
   setView("services");
   showToast(t("sent"));
@@ -576,7 +586,6 @@ document.addEventListener("click", (event) => {
   if (slotButton && !slotButton.disabled) {
     state.selection.time = slotButton.dataset.slot;
     rerenderAll();
-    setView("summary");
   }
   if (stepButton) setView(stepButton.dataset.view);
   if (backButton) setView(backButton.dataset.back);
@@ -621,6 +630,7 @@ $("#languageSelect").addEventListener("change", (event) => {
 });
 $("#startBooking").addEventListener("click", () => setView("services"));
 $("#confirmBooking").addEventListener("click", confirmBooking);
+$("#confirmBookingTime").addEventListener("click", confirmBooking);
 $("#refreshBookings").addEventListener("click", syncBookings);
 $("#giftInterest").addEventListener("click", () => showToast(t("giftToast")));
 $("#bookingDate").addEventListener("change", (event) => {
@@ -637,6 +647,7 @@ $("#vipToggle").addEventListener("change", (event) => {
   renderSummary();
 });
 $("#clientName").addEventListener("input", renderSummary);
+$("#clientSurname").addEventListener("input", renderSummary);
 $("#clientPhone").addEventListener("input", renderSummary);
 $("#adminOpen").addEventListener("click", () => {
   $("#adminDialog").showModal();

@@ -210,8 +210,26 @@ input {
   color: var(--ink);
 }
 
-.slot-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.slot { min-height: 42px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font-weight: 800; }
+.slot-grid {
+  display: flex;
+  gap: 10px;
+  margin-inline: -16px;
+  padding: 2px 16px 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.slot-grid::-webkit-scrollbar { height: 0; }
+.slot {
+  flex: 0 0 104px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  font-weight: 900;
+  scroll-snap-align: start;
+}
 .slot:disabled { color: #aaa; background: #f4eeee; }
 
 .toggle-row { display: flex; align-items: center; gap: 10px; }
@@ -319,7 +337,7 @@ input {
   .app-shell { padding-inline: 12px; }
   .hero { min-height: 188px; }
   .hero-copy { padding: 20px; }
-  .steps, .service-grid, .media-grid, .review-list, .slot-grid, .stats, .inline-form, .editable-row, .status-actions {
+  .steps, .service-grid, .media-grid, .review-list, .stats, .inline-form, .editable-row, .status-actions {
     grid-template-columns: 1fr;
   }
   .specialist-card { grid-template-columns: 48px 1fr; }

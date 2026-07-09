@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Beauty Studio</title>
-    <link rel="stylesheet" href="styles.css?v=20260709-premium2" />
+    <link rel="stylesheet" href="styles.css?v=20260709-flow3" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
@@ -31,13 +31,6 @@
             <button class="primary" id="startBooking" data-i18n="start">Սկսել ամրագրումը</button>
           </div>
         </section>
-
-        <nav class="steps" aria-label="Booking steps">
-          <button class="step is-active" data-view="services" data-i18n="stepServices">1. Ծառայություն</button>
-          <button class="step" data-view="specialists" data-i18n="stepSpecialists">2. Մասնագետ</button>
-          <button class="step" data-view="time" data-i18n="stepTime">3. Ժամ</button>
-          <button class="step" data-view="summary" data-i18n="stepConfirm">4. Հաստատում</button>
-        </nav>
 
         <section class="view is-visible" id="servicesView">
           <div class="section-head">
@@ -74,6 +67,10 @@
               <input id="clientName" autocomplete="name" />
             </label>
             <label>
+              <span data-i18n="clientSurname">Ազգանուն</span>
+              <input id="clientSurname" autocomplete="family-name" />
+            </label>
+            <label>
               <span data-i18n="clientPhone">Հեռախոս</span>
               <input id="clientPhone" autocomplete="tel" inputmode="tel" />
             </label>
@@ -85,6 +82,7 @@
               <input type="checkbox" id="reminderToggle" checked />
               <span data-i18n="reminder">Հիշեցնել այցից 24 ժամ և 2 ժամ առաջ</span>
             </label>
+            <button class="primary full" id="confirmBookingTime" data-i18n="confirm">Գրանցվել</button>
           </div>
         </section>
 
@@ -188,6 +186,6 @@
     </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script src="app.js?v=20260709-premium2"></script>
+    <script src="app.js?v=20260709-flow3"></script>
   </body>
 </html>
