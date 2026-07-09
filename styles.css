@@ -204,6 +204,9 @@ select { padding: 0 10px; font-weight: 800; }
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 label, .field-label {
@@ -213,16 +216,22 @@ label, .field-label {
   color: var(--muted);
   font-size: 14px;
   font-weight: 800;
+  min-width: 0;
+  max-width: 100%;
 }
 
 input {
   min-height: 44px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0 12px;
   background: white;
   color: var(--ink);
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .slot-grid {
@@ -230,7 +239,7 @@ input {
   gap: 10px;
   width: 100%;
   max-width: 100%;
-  padding: 2px 2px 10px;
+  padding: 2px 0 10px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -252,6 +261,10 @@ input {
 
 .toggle-row { display: flex; align-items: center; gap: 10px; }
 .toggle-row input { width: 20px; min-height: 20px; }
+.toggle-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
 .summary-card, .booking-item, .gift-card, .review-card { padding: 16px; }
 .summary-row, .booking-row {
@@ -370,4 +383,19 @@ input {
   .top-actions { flex-shrink: 0; }
   .summary-row, .booking-row { align-items: flex-start; flex-direction: column; }
   .admin-card { overflow-x: hidden; }
+  .booking-panel {
+    padding: 14px;
+    gap: 14px;
+  }
+  label, .field-label {
+    font-size: 13px;
+  }
+  .slot {
+    flex-basis: 112px;
+  }
+  .primary.full {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
 }
