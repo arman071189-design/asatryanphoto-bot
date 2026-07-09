@@ -35,6 +35,7 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATA_FILE = DATA_DIR / "bookings.json"
 USERS_FILE = DATA_DIR / "users.json"
+CATALOG_FILE = DATA_DIR / "catalog.json"
 
 STATUS_LABELS = {
     "pending": "սպասում է հաստատման",
@@ -260,7 +261,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
         self.send_header("X-Beauty-Salon-App", "1")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -279,7 +280,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS")
         self.end_headers()
 
     def do_GET(self):
@@ -289,6 +290,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(200, {"ok": True, "version": "1.2"})
         if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
+        if path.startswith("/api/catalog"):
+            return self.send_json(200, read_json(CATALOG_FILE, {}))
         if path == "/" or path == "/app":
             self.send_response(302)
             self.send_header("Location", "/app/")
@@ -320,6 +323,18 @@ class Handler(SimpleHTTPRequestHandler):
                 )
             return self.send_json(201, {"ok": True, "booking": booking})
 
+        return self.send_json(404, {"ok": False, "error": "Not found"})
+
+    def do_PUT(self):
+        payload = self.read_body()
+        if self.path.startswith("/api/catalog"):
+            catalog = {
+                "services": payload.get("services", []),
+                "specialists": payload.get("specialists", []),
+                "updatedAt": datetime.utcnow().isoformat(),
+            }
+            write_json(CATALOG_FILE, catalog)
+            return self.send_json(200, {"ok": True, "catalog": catalog})
         return self.send_json(404, {"ok": False, "error": "Not found"})
 
     def do_PATCH(self):

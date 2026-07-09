@@ -296,6 +296,36 @@ async function syncBookings() {
   }
 }
 
+async function syncCatalog() {
+  try {
+    const catalog = await api("/api/catalog");
+    if (catalog.services?.length && catalog.specialists?.length) {
+      state.services = catalog.services;
+      state.specialists = catalog.specialists;
+      save(storageKeys.services, state.services);
+      save(storageKeys.specialists, state.specialists);
+      rerenderAll();
+    } else {
+      await persistCatalog();
+    }
+  } catch {
+    rerenderAll();
+  }
+}
+
+async function persistCatalog() {
+  save(storageKeys.services, state.services);
+  save(storageKeys.specialists, state.specialists);
+  try {
+    await api("/api/catalog", {
+      method: "PUT",
+      body: JSON.stringify({ services: state.services, specialists: state.specialists }),
+    });
+  } catch {
+    showToast(t("backendOffline"));
+  }
+}
+
 function applyLanguage() {
   document.documentElement.lang = state.lang;
   $("#languageSelect").value = state.lang;
@@ -556,13 +586,12 @@ document.addEventListener("click", (event) => {
   if (deleteService) {
     state.services = state.services.filter((service) => service.id !== deleteService.dataset.deleteService);
     state.specialists = state.specialists.map((specialist) => ({ ...specialist, services: specialist.services.filter((id) => id !== deleteService.dataset.deleteService) }));
-    save(storageKeys.services, state.services);
-    save(storageKeys.specialists, state.specialists);
+    persistCatalog();
     rerenderAll();
   }
   if (deleteSpecialist) {
     state.specialists = state.specialists.filter((specialist) => specialist.id !== deleteSpecialist.dataset.deleteSpecialist);
-    save(storageKeys.specialists, state.specialists);
+    persistCatalog();
     rerenderAll();
   }
   if (saveService) {
@@ -571,7 +600,7 @@ document.addEventListener("click", (event) => {
     $$(`[data-edit-service="${id}"]`).forEach((input) => {
       service[input.dataset.field] = input.type === "number" ? Number(input.value) : input.value.trim();
     });
-    save(storageKeys.services, state.services);
+    persistCatalog();
     rerenderAll();
   }
   if (saveSpecialist) {
@@ -580,7 +609,7 @@ document.addEventListener("click", (event) => {
     $$(`[data-edit-specialist="${id}"]`).forEach((input) => {
       specialist[input.dataset.field] = input.value.trim();
     });
-    save(storageKeys.specialists, state.specialists);
+    persistCatalog();
     rerenderAll();
   }
 });
@@ -629,7 +658,7 @@ $("#addService").addEventListener("click", () => {
   const description = $("#newServiceDescription").value.trim();
   if (!name || !price || !duration) return showToast(t("fillAll"));
   state.services.push({ id: makeId("service"), name, price, duration, description, image: defaultServices[0].image });
-  save(storageKeys.services, state.services);
+  persistCatalog();
   ["#newServiceName", "#newServicePrice", "#newServiceDuration", "#newServiceDescription"].forEach((id) => ($(id).value = ""));
   rerenderAll();
 });
@@ -639,7 +668,7 @@ $("#addSpecialist").addEventListener("click", () => {
   const bio = $("#newSpecialistBio").value.trim();
   if (!name || !role) return showToast(t("fillAll"));
   state.specialists.push({ id: makeId("specialist"), name, role, bio, services: state.services.map((service) => service.id), rating: "4.8" });
-  save(storageKeys.specialists, state.specialists);
+  persistCatalog();
   ["#newSpecialistName", "#newSpecialistRole", "#newSpecialistBio"].forEach((id) => ($(id).value = ""));
   rerenderAll();
 });
@@ -649,4 +678,5 @@ $("#bookingDate").value = todayIso();
 state.selection.date = todayIso();
 
 rerenderAll();
+syncCatalog();
 syncBookings();
