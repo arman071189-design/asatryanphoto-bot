@@ -36,6 +36,13 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATA_FILE = DATA_DIR / "bookings.json"
 USERS_FILE = DATA_DIR / "users.json"
 
+STATUS_LABELS = {
+    "pending": "սպասում է հաստատման",
+    "confirmed": "հաստատված է",
+    "cancelled": "չեղարկված է",
+    "completed": "ավարտված է",
+}
+
 
 def read_json(path, fallback):
     if not path.exists():
@@ -53,7 +60,7 @@ def write_json(path, value):
 def telegram(method, payload=None):
     if not BOT_TOKEN:
         return None
-    data = json.dumps(payload or {}).encode("utf-8")
+    data = json.dumps(payload or {}, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
         f"{API_BASE}/{method}",
         data=data,
@@ -68,14 +75,18 @@ def send_message(chat_id, text, reply_markup=None):
     payload = {"chat_id": chat_id, "text": text}
     if reply_markup:
         payload["reply_markup"] = reply_markup
-    return telegram("sendMessage", payload)
+    try:
+        return telegram("sendMessage", payload)
+    except Exception as exc:
+        print(f"sendMessage error: {exc}", flush=True)
+        return None
 
 
-def is_public_https_url(url):
-    parsed = urllib.parse.urlparse(url)
-    host = parsed.hostname or ""
-    local_hosts = {"localhost", "127.0.0.1", "0.0.0.0", "::1"}
-    return parsed.scheme == "https" and host not in local_hosts
+def answer_callback(callback_id, text=""):
+    try:
+        telegram("answerCallbackQuery", {"callback_query_id": callback_id, "text": text})
+    except Exception as exc:
+        print(f"answerCallbackQuery error: {exc}", flush=True)
 
 
 def web_app_keyboard():
@@ -86,29 +97,55 @@ def web_app_keyboard():
     }
 
 
-def start_message():
-    if is_public_https_url(WEB_APP_URL):
-        return (
-            "Բարի գալուստ Beauty Studio։ Սեղմեք կոճակը և բացեք Mini App-ը։",
-            web_app_keyboard(),
-        )
-    return (
-        "Mini App-ը դեռ public HTTPS URL չունի։\n\n"
-        f"Այժմ WEB_APP_URL = {WEB_APP_URL}\n"
-        "Telegram-ը չի բացում localhost/http հասցեներ։ Deploy արեք app-ը և դրեք "
-        "WEB_APP_URL=https://your-domain/app/",
-        None,
-    )
+def admin_booking_keyboard(booking_id):
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "Հաստատել", "callback_data": f"booking:confirmed:{booking_id}"},
+                {"text": "Չեղարկել", "callback_data": f"booking:cancelled:{booking_id}"},
+            ],
+            [{"text": "Բացել Mini App-ը", "web_app": {"url": WEB_APP_URL}}],
+        ]
+    }
 
 
 def booking_text(booking):
+    vip = "VIP հաճախորդ\n" if booking.get("vip") else ""
+    loyalty = f"Loyalty՝ {booking.get('loyaltyLevel', 'Standard')}\n"
+    contact = f"Հաճախորդ՝ {booking.get('clientName', '-')}, {booking.get('clientPhone', '-')}\n"
     return (
-        "Նոր ամրագրում\n"
+        f"Նոր ամրագրում ({STATUS_LABELS.get(booking.get('status'), booking.get('status'))})\n"
+        f"{vip}{loyalty}{contact}"
         f"Ծառայություն՝ {booking.get('serviceName')}\n"
         f"Մասնագետ՝ {booking.get('specialistName')}\n"
         f"Ամսաթիվ՝ {booking.get('date')} {booking.get('time')}\n"
         f"Գին՝ {booking.get('price')} ֏"
     )
+
+
+def find_booking(bookings, booking_id):
+    return next((item for item in bookings if item.get("id") == booking_id), None)
+
+
+def update_booking_status(booking_id, status, source="admin"):
+    bookings = read_json(DATA_FILE, [])
+    booking = find_booking(bookings, booking_id)
+    if not booking:
+        return None
+    booking["status"] = status
+    booking["updatedAt"] = datetime.utcnow().isoformat()
+    booking["updatedBy"] = source
+    write_json(DATA_FILE, bookings)
+
+    label = STATUS_LABELS.get(status, status)
+    if booking.get("telegramUserId"):
+        send_message(
+            booking["telegramUserId"],
+            f"Ձեր ամրագրումը {label}։\n{booking.get('serviceName')} · {booking.get('date')} {booking.get('time')}",
+        )
+    if ADMIN_CHAT_ID and source == "client":
+        send_message(ADMIN_CHAT_ID, f"Հաճախորդը չեղարկել է ամրագրումը։\n\n{booking_text(booking)}")
+    return booking
 
 
 def remember_user(message):
@@ -127,37 +164,54 @@ def remember_user(message):
     write_json(USERS_FILE, users)
 
 
+def handle_callback(update):
+    callback = update.get("callback_query") or {}
+    data = callback.get("data", "")
+    callback_id = callback.get("id")
+    if not data.startswith("booking:"):
+        answer_callback(callback_id, "Չճանաչված գործողություն")
+        return
+    _, status, booking_id = data.split(":", 2)
+    booking = update_booking_status(booking_id, status, source="admin")
+    if booking:
+        answer_callback(callback_id, f"Կարգավիճակը՝ {STATUS_LABELS.get(status, status)}")
+    else:
+        answer_callback(callback_id, "Ամրագրումը չի գտնվել")
+
+
 def bot_loop():
     if not BOT_TOKEN:
-        print("BOT_TOKEN is missing. Web server will run without Telegram polling.")
+        print("BOT_TOKEN is missing. Web server will run without Telegram polling.", flush=True)
         return
 
     offset = None
-    print("Telegram bot polling started.")
+    print("Telegram bot polling started.", flush=True)
     while True:
-      try:
-        payload = {"timeout": 25}
-        if offset is not None:
-            payload["offset"] = offset
-        result = telegram("getUpdates", payload) or {}
-        for update in result.get("result", []):
-            offset = update["update_id"] + 1
-            message = update.get("message") or {}
-            if not message:
-                continue
-            remember_user(message)
-            chat_id = message["chat"]["id"]
-            text = (message.get("text") or "").strip()
-            if text.startswith("/start"):
-                text, markup = start_message()
-                send_message(chat_id, text, markup)
-            elif text.startswith("/admin"):
-                send_message(chat_id, f"Ձեր chat id-ն է՝ {chat_id}")
-            else:
-                send_message(chat_id, "Ամրագրելու համար բացեք Mini App-ը։", web_app_keyboard())
-      except Exception as exc:
-        print(f"Bot polling error: {exc}")
-        time.sleep(5)
+        try:
+            payload = {"timeout": 25}
+            if offset is not None:
+                payload["offset"] = offset
+            result = telegram("getUpdates", payload) or {}
+            for update in result.get("result", []):
+                offset = update["update_id"] + 1
+                if update.get("callback_query"):
+                    handle_callback(update)
+                    continue
+                message = update.get("message") or {}
+                if not message:
+                    continue
+                remember_user(message)
+                chat_id = message["chat"]["id"]
+                text = (message.get("text") or "").strip()
+                if text.startswith("/start"):
+                    send_message(chat_id, "Բարի գալուստ Beauty Studio։ Սեղմեք կոճակը և բացեք Mini App-ը։", web_app_keyboard())
+                elif text.startswith("/admin"):
+                    send_message(chat_id, f"Ձեր chat id-ն է՝ {chat_id}")
+                else:
+                    send_message(chat_id, "Ամրագրելու համար բացեք Mini App-ը։", web_app_keyboard())
+        except Exception as exc:
+            print(f"Bot polling error: {exc}", flush=True)
+            time.sleep(5)
 
 
 def reminder_loop():
@@ -167,24 +221,28 @@ def reminder_loop():
             changed = False
             now = datetime.now()
             for booking in bookings:
-                if not booking.get("reminder") or booking.get("reminded") or booking.get("status") == "Չեղարկված":
+                if not booking.get("reminder") or booking.get("status") in {"cancelled", "completed"}:
                     continue
                 starts_at = datetime.fromisoformat(f"{booking.get('date')}T{booking.get('time')}:00")
-                if timedelta(0) < starts_at - now <= timedelta(hours=2):
-                    chat_id = booking.get("telegramUserId") or ADMIN_CHAT_ID
-                    if chat_id:
-                        send_message(chat_id, f"Հիշեցում՝ այսօր {booking.get('time')}-ին {booking.get('serviceName')}")
-                    booking["reminded"] = True
-                    changed = True
+                diff = starts_at - now
+                for hours, key in [(24, "reminded24h"), (2, "reminded2h")]:
+                    if booking.get(key):
+                        continue
+                    if timedelta(0) < diff <= timedelta(hours=hours):
+                        chat_id = booking.get("telegramUserId") or ADMIN_CHAT_ID
+                        if chat_id:
+                            send_message(chat_id, f"Հիշեցում՝ {hours} ժամից այց ունեք։\n{booking.get('serviceName')} · {booking.get('date')} {booking.get('time')}")
+                        booking[key] = True
+                        changed = True
             if changed:
                 write_json(DATA_FILE, bookings)
         except Exception as exc:
-            print(f"Reminder error: {exc}")
+            print(f"Reminder error: {exc}", flush=True)
         time.sleep(60)
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "BeautySalonMiniApp/1.1"
+    server_version = "BeautySalonMiniApp/1.2"
 
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -202,6 +260,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS")
         self.send_header("X-Beauty-Salon-App", "1")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -211,18 +270,23 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("X-Beauty-Salon-App", "1")
         super().end_headers()
 
+    def read_body(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length).decode("utf-8")
+        return json.loads(raw or "{}")
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS")
         self.end_headers()
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         if path.startswith("/health"):
-            return self.send_json(200, {"ok": True})
+            return self.send_json(200, {"ok": True, "version": "1.2"})
         if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
         if path == "/" or path == "/app":
@@ -235,26 +299,40 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        length = int(self.headers.get("Content-Length", "0"))
-        raw = self.rfile.read(length).decode("utf-8")
-        payload = json.loads(raw or "{}")
-
+        payload = self.read_body()
         if self.path.startswith("/api/bookings"):
             bookings = read_json(DATA_FILE, [])
             booking = payload.get("booking", payload)
             booking.setdefault("id", f"booking_{int(time.time() * 1000)}")
-            booking.setdefault("status", "Հաստատված")
+            booking.setdefault("status", "pending")
             booking.setdefault("createdAt", datetime.utcnow().isoformat())
+            booking.setdefault("reminded24h", False)
+            booking.setdefault("reminded2h", False)
             bookings.append(booking)
             write_json(DATA_FILE, bookings)
 
             if ADMIN_CHAT_ID:
-                send_message(ADMIN_CHAT_ID, booking_text(booking))
+                send_message(ADMIN_CHAT_ID, booking_text(booking), admin_booking_keyboard(booking["id"]))
             if booking.get("telegramUserId"):
-                send_message(booking["telegramUserId"], "Ձեր ամրագրումը հաստատված է։")
-
+                send_message(
+                    booking["telegramUserId"],
+                    f"Ձեր ամրագրումը ստացվել է և սպասում է հաստատման։\n{booking.get('serviceName')} · {booking.get('date')} {booking.get('time')}",
+                )
             return self.send_json(201, {"ok": True, "booking": booking})
 
+        return self.send_json(404, {"ok": False, "error": "Not found"})
+
+    def do_PATCH(self):
+        payload = self.read_body()
+        if self.path.startswith("/api/bookings/"):
+            booking_id = urllib.parse.urlparse(self.path).path.rsplit("/", 1)[-1]
+            status = payload.get("status")
+            if status not in STATUS_LABELS:
+                return self.send_json(400, {"ok": False, "error": "Invalid status"})
+            booking = update_booking_status(booking_id, status, source=payload.get("source", "admin"))
+            if not booking:
+                return self.send_json(404, {"ok": False, "error": "Booking not found"})
+            return self.send_json(200, {"ok": True, "booking": booking})
         return self.send_json(404, {"ok": False, "error": "Not found"})
 
 
@@ -262,7 +340,7 @@ def main():
     threading.Thread(target=bot_loop, daemon=True).start()
     threading.Thread(target=reminder_loop, daemon=True).start()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"Beauty Salon Mini App server: http://localhost:{PORT}/app/")
+    print(f"Beauty Salon Mini App server: http://localhost:{PORT}/app/", flush=True)
     server.serve_forever()
 
 

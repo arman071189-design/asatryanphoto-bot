@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Beauty Salon Mini App</title>
+    <title>Beauty Studio</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
@@ -12,31 +12,36 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Beauty Studio</p>
-          <h1>Ամրագրում</h1>
+          <h1 data-i18n="title">Ամրագրել այց</h1>
         </div>
-        <button class="icon-button" id="adminOpen" aria-label="Admin panel" title="Admin panel">
-          <span>⚙</span>
-        </button>
+        <div class="top-actions">
+          <select id="languageSelect" aria-label="Language">
+            <option value="hy">HY</option>
+            <option value="ru">RU</option>
+            <option value="en">EN</option>
+          </select>
+          <button class="icon-button" id="adminOpen" aria-label="Admin panel" title="Admin panel">⚙</button>
+        </div>
       </header>
 
       <main>
         <section class="hero">
           <div class="hero-copy">
-            <p>Ընտրեք ծառայությունը, մասնագետին ու հարմար ժամը։</p>
-            <button class="primary" id="startBooking">Սկսել ամրագրումը</button>
+            <p data-i18n="heroText">Ընտրեք ծառայությունը, մասնագետին և հարմար ժամը։</p>
+            <button class="primary" id="startBooking" data-i18n="start">Սկսել ամրագրումը</button>
           </div>
         </section>
 
         <nav class="steps" aria-label="Booking steps">
-          <button class="step is-active" data-view="services">1. Ծառայություն</button>
-          <button class="step" data-view="specialists">2. Մասնագետ</button>
-          <button class="step" data-view="time">3. Ժամ</button>
-          <button class="step" data-view="summary">4. Հաստատում</button>
+          <button class="step is-active" data-view="services" data-i18n="stepServices">1. Ծառայություն</button>
+          <button class="step" data-view="specialists" data-i18n="stepSpecialists">2. Մասնագետ</button>
+          <button class="step" data-view="time" data-i18n="stepTime">3. Ժամ</button>
+          <button class="step" data-view="summary" data-i18n="stepConfirm">4. Հաստատում</button>
         </nav>
 
         <section class="view is-visible" id="servicesView">
           <div class="section-head">
-            <h2>Ծառայություններ</h2>
+            <h2 data-i18n="services">Ծառայություններ</h2>
             <span id="servicesCount"></span>
           </div>
           <div class="service-grid" id="servicesList"></div>
@@ -44,46 +49,85 @@
 
         <section class="view" id="specialistsView">
           <div class="section-head">
-            <h2>Մասնագետներ</h2>
-            <button class="ghost" data-back="services">Փոխել ծառայությունը</button>
+            <h2 data-i18n="specialists">Մասնագետներ</h2>
+            <button class="ghost" data-back="services" data-i18n="changeService">Փոխել ծառայությունը</button>
           </div>
           <div class="specialist-list" id="specialistsList"></div>
         </section>
 
         <section class="view" id="timeView">
           <div class="section-head">
-            <h2>Ժամի ընտրություն</h2>
-            <button class="ghost" data-back="specialists">Փոխել մասնագետին</button>
+            <h2 data-i18n="timeSelect">Ժամի ընտրություն</h2>
+            <button class="ghost" data-back="specialists" data-i18n="changeSpecialist">Փոխել մասնագետին</button>
           </div>
           <div class="booking-panel">
             <label>
-              Ամսաթիվ
+              <span data-i18n="date">Ամսաթիվ</span>
               <input type="date" id="bookingDate" />
             </label>
             <div>
-              <p class="field-label">Հասանելի ժամեր</p>
+              <p class="field-label" data-i18n="availableTimes">Հասանելի ժամեր</p>
               <div class="slot-grid" id="slotList"></div>
             </div>
+            <label>
+              <span data-i18n="clientName">Անուն</span>
+              <input id="clientName" autocomplete="name" />
+            </label>
+            <label>
+              <span data-i18n="clientPhone">Հեռախոս</span>
+              <input id="clientPhone" autocomplete="tel" inputmode="tel" />
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="vipToggle" />
+              <span data-i18n="vipClient">VIP / loyalty հաճախորդ</span>
+            </label>
             <label class="toggle-row">
               <input type="checkbox" id="reminderToggle" checked />
-              <span>Հիշեցնել այցից 2 ժամ առաջ</span>
+              <span data-i18n="reminder">Հիշեցնել այցից 24 ժամ և 2 ժամ առաջ</span>
             </label>
           </div>
         </section>
 
         <section class="view" id="summaryView">
           <div class="section-head">
-            <h2>Ամրագրում</h2>
-            <button class="ghost" data-back="time">Փոխել ժամը</button>
+            <h2 data-i18n="summary">Ամրագրում</h2>
+            <button class="ghost" data-back="time" data-i18n="changeTime">Փոխել ժամը</button>
           </div>
           <div class="summary-card" id="summaryCard"></div>
-          <button class="primary full" id="confirmBooking">Հաստատել ամրագրումը</button>
+          <button class="primary full" id="confirmBooking" data-i18n="confirm">Ուղարկել հաստատման</button>
+        </section>
+
+        <section class="feature-section">
+          <div class="section-head">
+            <h2 data-i18n="portfolio">Portfolio</h2>
+          </div>
+          <div class="media-grid" id="portfolioList"></div>
+        </section>
+
+        <section class="feature-section">
+          <div class="section-head">
+            <h2 data-i18n="giftCards">Gift cards</h2>
+          </div>
+          <div class="gift-card">
+            <div>
+              <strong data-i18n="giftTitle">Beauty certificate</strong>
+              <p data-i18n="giftText">Նվիրեք premium խնամքի փորձ՝ 25,000 ֏-ից սկսած։</p>
+            </div>
+            <button class="ghost" id="giftInterest" data-i18n="giftButton">Հետաքրքրված եմ</button>
+          </div>
+        </section>
+
+        <section class="feature-section">
+          <div class="section-head">
+            <h2 data-i18n="reviews">Կարծիքներ</h2>
+          </div>
+          <div class="review-list" id="reviewsList"></div>
         </section>
 
         <section class="bookings">
           <div class="section-head">
-            <h2>Իմ ամրագրումները</h2>
-            <button class="ghost" id="clearPast">Մաքրել անցածները</button>
+            <h2 data-i18n="myBookings">Իմ ամրագրումները</h2>
+            <button class="ghost" id="refreshBookings" data-i18n="refresh">Թարմացնել</button>
           </div>
           <div id="bookingsList" class="booking-list"></div>
         </section>
@@ -95,17 +139,17 @@
         <div class="dialog-head">
           <div>
             <p class="eyebrow">Admin</p>
-            <h2>Կառավարման վահանակ</h2>
+            <h2 data-i18n="adminPanel">Կառավարման վահանակ</h2>
           </div>
           <button class="icon-button" value="close" aria-label="Close">×</button>
         </div>
 
         <div id="pinGate" class="pin-gate">
           <label>
-            Մուտքագրեք PIN
+            <span data-i18n="pin">Մուտքագրեք PIN</span>
             <input type="password" id="adminPin" inputmode="numeric" placeholder="2026" />
           </label>
-          <button type="button" class="primary" id="unlockAdmin">Մուտք</button>
+          <button type="button" class="primary" id="unlockAdmin" data-i18n="login">Մուտք</button>
           <p class="hint">Demo PIN՝ 2026</p>
         </div>
 
@@ -113,28 +157,30 @@
           <div class="stats" id="adminStats"></div>
 
           <div class="admin-section">
-            <h3>Ծառայություններ</h3>
+            <h3 data-i18n="services">Ծառայություններ</h3>
             <div class="inline-form">
               <input id="newServiceName" placeholder="Անուն" />
               <input id="newServicePrice" type="number" min="0" placeholder="Գին" />
               <input id="newServiceDuration" type="number" min="15" step="15" placeholder="Րոպե" />
-              <button type="button" class="primary" id="addService">Ավելացնել</button>
+              <input id="newServiceDescription" placeholder="Նկարագրություն" />
+              <button type="button" class="primary" id="addService" data-i18n="add">Ավելացնել</button>
             </div>
             <div id="adminServices" class="admin-list"></div>
           </div>
 
           <div class="admin-section">
-            <h3>Մասնագետներ</h3>
+            <h3 data-i18n="specialists">Մասնագետներ</h3>
             <div class="inline-form">
               <input id="newSpecialistName" placeholder="Անուն" />
               <input id="newSpecialistRole" placeholder="Ոլորտ" />
-              <button type="button" class="primary" id="addSpecialist">Ավելացնել</button>
+              <input id="newSpecialistBio" placeholder="Փորձ / bio" />
+              <button type="button" class="primary" id="addSpecialist" data-i18n="add">Ավելացնել</button>
             </div>
             <div id="adminSpecialists" class="admin-list"></div>
           </div>
 
           <div class="admin-section">
-            <h3>Ամրագրումներ</h3>
+            <h3 data-i18n="bookings">Ամրագրումներ</h3>
             <div id="adminBookings" class="admin-list"></div>
           </div>
         </div>
