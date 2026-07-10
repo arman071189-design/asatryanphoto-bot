@@ -199,6 +199,7 @@ select { padding: 0 10px; font-weight: 800; }
 
 .booking-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   padding: 16px;
   border: 1px solid var(--line);
@@ -207,6 +208,18 @@ select { padding: 0 10px; font-weight: 800; }
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
+  contain: inline-size;
+}
+
+.booking-panel > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.booking-panel > label:not(.toggle-row),
+.booking-panel > div {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 label, .field-label {
@@ -223,8 +236,11 @@ label, .field-label {
 input {
   min-height: 44px;
   width: 100%;
+  inline-size: 100%;
   max-width: 100%;
+  max-inline-size: 100%;
   min-width: 0;
+  min-inline-size: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0 12px;
@@ -238,13 +254,17 @@ input {
   display: flex;
   gap: 10px;
   width: 100%;
+  inline-size: 100%;
   max-width: 100%;
+  max-inline-size: 100%;
+  min-width: 0;
   padding: 2px 0 10px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-inline: contain;
+  contain: inline-size;
 }
 .slot-grid::-webkit-scrollbar { height: 0; }
 .slot {
@@ -396,6 +416,8 @@ input {
   .primary.full {
     display: block;
     width: 100%;
+    inline-size: 100%;
     max-width: 100%;
+    max-inline-size: 100%;
   }
 }

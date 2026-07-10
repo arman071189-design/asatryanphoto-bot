@@ -31,7 +31,7 @@ ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "").strip()
 WEB_APP_URL = os.environ.get("WEB_APP_URL", "http://localhost:8000/app/").strip()
 PORT = int(os.environ.get("PORT", "8000"))
 API_BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
-APP_VERSION = "20260709-flow5"
+APP_VERSION = "20260710-flow6"
 DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR / "data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DATA_FILE = DATA_DIR / "bookings.json"
@@ -251,7 +251,7 @@ def reminder_loop():
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "BeautySalonMiniApp/1.6"
+    server_version = "BeautySalonMiniApp/1.7"
 
     def translate_path(self, path):
         parsed = urllib.parse.urlparse(path)
@@ -298,7 +298,7 @@ class Handler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         if path.startswith("/health"):
-            return self.send_json(200, {"ok": True, "version": "1.6", "appVersion": APP_VERSION})
+            return self.send_json(200, {"ok": True, "version": "1.7", "appVersion": APP_VERSION})
         if path.startswith("/api/bookings"):
             return self.send_json(200, read_json(DATA_FILE, []))
         if path.startswith("/api/catalog"):
